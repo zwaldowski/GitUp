@@ -88,7 +88,7 @@ static inline WindowModeID _WindowModeIDFromString(NSString* mode) {
     return kWindowModeID_Stashes;
   }
   XLOG_DEBUG_UNREACHABLE();
-  return nil;
+  return (WindowModeID)0;
 }
 
 @implementation Document {

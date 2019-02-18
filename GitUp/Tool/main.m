@@ -92,7 +92,10 @@ int main(int argc, const char* argv[]) {
                   NSMutableDictionary* message = [[NSMutableDictionary alloc] init];
                   [message setObject:[NSString stringWithUTF8String:command] forKey:kToolDictionaryKey_Command];
                   [message setObject:repositoryPath forKey:kToolDictionaryKey_Repository];
-                  NSData* sendData = [NSKeyedArchiver archivedDataWithRootObject:message];
+                  // TODO use +[NSKeyedArchiver archivedDataWithRootObject:] on 10.12+
+                  NSMutableData* sendData = [NSMutableData data];
+                  NSKeyedArchiver* archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:sendData];
+                  [archiver encodeObject:message forKey:NSKeyedArchiveRootObjectKey];
                   CFDataRef returnData = NULL;
                   status = CFMessagePortSendRequest(messagePort, 0, (CFDataRef)sendData, kCommunicationTimeOut, kCommunicationTimeOut, kCFRunLoopDefaultMode, &returnData);
                   if (status == kCFMessagePortSuccess) {

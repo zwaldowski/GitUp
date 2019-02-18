@@ -109,7 +109,10 @@
   if (_results.count) {
     _tableView.hidden = NO;
     _emptyTextField.hidden = YES;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
     [self tableViewSelectionDidChange:nil];  // Work around a bug where -tableViewSelectionDidChange is not called when emptying the table
+#pragma clang diagnostic pop
   } else {
     _tableView.hidden = YES;  // Hide table to prevent it to become first responder
     _emptyTextField.hidden = NO;

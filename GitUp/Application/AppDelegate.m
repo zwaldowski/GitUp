@@ -461,12 +461,16 @@
 
 #pragma mark - Tool
 
-static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef data, void* info) {
-  NSDictionary* input = [NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData*)data];
+static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef inputData, void* info) {
+  NSDictionary* input = [NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData*)inputData];
   XLOG_DEBUG_CHECK(input);
   NSDictionary* output = [(__bridge AppDelegate*)info _processToolCommand:input];
   XLOG_DEBUG_CHECK(output);
-  return CFBridgingRetain([NSKeyedArchiver archivedDataWithRootObject:output]);
+  // TODO use +[NSKeyedArchiver archivedDataWithRootObject:] on 10.12+
+  NSMutableData* outputData = [NSMutableData data];
+  NSKeyedArchiver* archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:outputData];
+  [archiver encodeObject:archiver forKey:NSKeyedArchiveRootObjectKey];
+  return CFBridgingRetain(outputData);
 }
 
 - (NSDictionary*)_processToolCommand:(NSDictionary*)input {

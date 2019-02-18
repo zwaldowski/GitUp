@@ -110,7 +110,10 @@
 
   if (_stashes.count == 0) {
     _emptyLabel.hidden = NO;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
     [self tableViewSelectionDidChange:nil];  // Work around a bug where -tableViewSelectionDidChange is not called when emptying the table
+#pragma clang diagnostic pop
   } else {
     _emptyLabel.hidden = YES;
   }
