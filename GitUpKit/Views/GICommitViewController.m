@@ -89,14 +89,14 @@
     [string appendString:NSLocalizedString(@"Committing as ", nil) withAttributes:@{NSFontAttributeName : [NSFont systemFontOfSize:fontSize]}];
     [string appendString:user withAttributes:@{NSFontAttributeName : [NSFont boldSystemFontOfSize:fontSize]}];
   }
-  [string setAlignment:NSCenterTextAlignment range:NSMakeRange(0, string.length)];
+  [string setAlignment:NSTextAlignmentCenter range:NSMakeRange(0, string.length)];
   [string endEditing];
   _infoTextField.attributedStringValue = string;
 
   _headCommitMessage = headCommit.message;
   if (!headCommit || self.repository.state) {  // Don't allow amending if there's no HEAD or repository is not in default state
     self.amendButton.enabled = NO;
-    self.amendButton.state = NSOffState;
+    self.amendButton.state = NSControlStateValueOff;
   } else {
     self.amendButton.enabled = YES;
   }
@@ -142,7 +142,7 @@
   _otherMessageTextView.string = @"";
   [_otherMessageTextView.undoManager removeAllActions];
 
-  _amendButton.state = NSOffState;
+  _amendButton.state = NSControlStateValueOff;
 
   [_delegate commitViewController:self didCreateCommit:commit];
 }

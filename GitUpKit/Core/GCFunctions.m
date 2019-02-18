@@ -23,10 +23,6 @@
 #import <sys/attr.h>
 #import <sys/mount.h>
 
-#ifndef kCFCoreFoundationVersionNumber10_12
-#define kCFCoreFoundationVersionNumber10_12 1348.1
-#endif
-
 NSString* const GCErrorDomain = @"GCErrorDomain";
 
 NSError* GCNewError(NSInteger code, NSString* message) {

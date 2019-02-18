@@ -324,11 +324,11 @@ cleanup:
 
 - (id)initWithCoder:(NSCoder*)decoder {
   if ((self = [super init])) {
-    _config = [[decoder decodeObjectOfClass:[NSMutableDictionary class] forKey:@"config"] retain];
+    _config = [[decoder decodeObjectOfClasses:[NSSet setWithObjects:NSDictionary.class, NSString.class, NSNumber.class, NSDate.class, NSArray.class, NSDictionary.class, nil] forKey:@"config"] mutableCopy];
     GC_DEBUG_CHECK(_config);
-    _serializedReferences = [[decoder decodeObjectOfClass:[NSMutableArray class] forKey:@"serialized_references"] retain];
+    _serializedReferences = [[decoder decodeObjectOfClasses:[NSSet setWithObjects:NSArray.class, GCSerializedReference.class, nil] forKey:@"serialized_references"] mutableCopy];
     GC_DEBUG_CHECK(_serializedReferences);
-    _info = [[decoder decodeObjectOfClass:[NSMutableDictionary class] forKey:@"info"] retain];
+    _info = [[decoder decodeObjectOfClasses:[NSSet setWithObjects:NSDictionary.class, NSString.class, NSNumber.class, NSDate.class, NSArray.class, NSDictionary.class, nil] forKey:@"info"] mutableCopy];
     GC_DEBUG_CHECK(_info);
 
     CFDictionaryKeyCallBacks callbacks = {0, NULL, NULL, NULL, GCCStringEqualCallBack, GCCStringHashCallBack};

@@ -19,6 +19,7 @@
 
 #import <sys/stat.h>
 #import <sys/attr.h>
+#import <stdatomic.h>
 
 #import "GCPrivate.h"
 
@@ -51,7 +52,7 @@ NSString* const GCLiveRepositoryCommitOperationReason = @"commit";
 NSString* const GCLiveRepositoryAmendOperationReason = @"amend";
 
 #if DEBUG
-static int32_t _allocatedCount = 0;
+static atomic_int_least32_t _allocatedCount = 0;
 #endif
 
 @implementation GCLiveRepository {
@@ -85,7 +86,7 @@ static int32_t _allocatedCount = 0;
   if (repository) {
     repository->_gitDirectory = -1;  // Prevents calling close(0) in -dealloc in case super returns nil
 #if DEBUG
-    OSAtomicIncrement32(&_allocatedCount);
+    atomic_fetch_add(&_allocatedCount, 1);
 #endif
   }
   return repository;
@@ -276,7 +277,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
     close(_gitDirectory);
   }
 #if DEBUG
-  OSAtomicDecrement32(&_allocatedCount);
+  atomic_fetch_sub(&_allocatedCount, 1);
 #endif
 }
 
@@ -490,16 +491,12 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
   BOOL success = NO;
   NSString* path = [self.privateAppDirectoryPath stringByAppendingPathComponent:kSnapshotsFileName];
   if (path) {
-    NSString* tempPath = [path stringByAppendingString:@"~"];
-    if ([NSKeyedArchiver archiveRootObject:_snapshots toFile:tempPath]) {
-      if (GCExchangeFileData(tempPath.fileSystemRepresentation, path.fileSystemRepresentation) == 0) {
-        success = YES;
-      } else if (rename(tempPath.fileSystemRepresentation, path.fileSystemRepresentation) == 0) {
-        success = YES;
-      }
-      if (!success) {
-        os_log_error(OS_LOG_DEFAULT, "Failed archiving snapshots: %s", strerror(errno));
-      }
+    NSError *error = nil;
+    NSData* data = [NSKeyedArchiver archivedDataWithRootObject:_snapshots requiringSecureCoding:YES error:&error];
+    if ([data writeToFile:path options:NSDataWritingAtomic error:&error]) {
+      success = YES;
+    } else {
+      os_log_error(OS_LOG_DEFAULT, "Failed archiving snapshots: %@", error);
     }
   }
   if (!success && [self.delegate respondsToSelector:@selector(repository:snapshotsUpdateDidFailWithError:)]) {
@@ -510,12 +507,17 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
 - (void)_readSnapshots {
   NSString* path = [self.privateAppDirectoryPath stringByAppendingPathComponent:kSnapshotsFileName];
   if (path) {
-    if ([[NSFileManager defaultManager] fileExistsAtPath:path followLastSymlink:NO]) {
-      NSArray* array = [NSKeyedUnarchiver unarchiveObjectWithFile:path];
+    NSData* data = [NSData dataWithContentsOfFile:path];
+    if (data) {
+      NSError* error = nil;
+      NSArray* array = [NSKeyedUnarchiver unarchivedObjectOfClasses:[NSSet setWithObjects:NSArray.self, GCSnapshot.self, nil] fromData:data error:&error];
       if (array) {
         [_snapshots addObjectsFromArray:array];
       } else if ([self.delegate respondsToSelector:@selector(repository:snapshotsUpdateDidFailWithError:)]) {
-        [self.delegate repository:self snapshotsUpdateDidFailWithError:GCNewError(kGCErrorCode_Generic, @"Failed reading snapshots")];
+        [self.delegate repository:self snapshotsUpdateDidFailWithError:[NSError errorWithDomain:GCErrorDomain code:kGCErrorCode_Generic userInfo:@{
+          NSLocalizedDescriptionKey : NSLocalizedString(@"Failed accessing snapshots", nil),
+          NSUnderlyingErrorKey: error
+        }]];
       }
     }
   } else if ([self.delegate respondsToSelector:@selector(repository:snapshotsUpdateDidFailWithError:)]) {

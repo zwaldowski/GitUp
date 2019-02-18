@@ -313,7 +313,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
 - (void)drawRect:(NSRect)dirtyRect {
   NSRect bounds = self.bounds;
   CGFloat offset = floor(bounds.size.width / 2);
-  CGContextRef context = [[NSGraphicsContext currentContext] graphicsPort];
+  CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
   CGContextSaveGState(context);
 
   [self updateLayoutForWidth:bounds.size.width];
@@ -580,9 +580,9 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
     _rightSelection = rightSelection;
 
     // Set selection mode according to modifier flags
-    if (event.modifierFlags & NSCommandKeyMask) {
+    if (event.modifierFlags & NSEventModifierFlagCommand) {
       _selectionMode = kSelectionMode_Inverse;
-    } else if ((event.modifierFlags & NSShiftKeyMask) && _selectedLines.count) {
+    } else if ((event.modifierFlags & NSEventModifierFlagShift) && _selectedLines.count) {
       _selectionMode = kSelectionMode_Extend;
     } else {
       _selectionMode = kSelectionMode_Replace;

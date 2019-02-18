@@ -231,7 +231,7 @@ typedef struct {
 
 - (void)drawRect:(NSRect)dirtyRect {
   NSRect bounds = self.bounds;
-  CGContextRef context = [[NSGraphicsContext currentContext] graphicsPort];
+  CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
   CGContextSaveGState(context);
 
   [self updateLayoutForWidth:bounds.size.width];
@@ -451,9 +451,9 @@ typedef struct {
     CTLineRef line = CFArrayGetValueAtIndex(lines, index);
 
     // Set selection mode according to modifier flags
-    if (event.modifierFlags & NSCommandKeyMask) {
+    if (event.modifierFlags & NSEventModifierFlagCommand) {
       _selectionMode = kSelectionMode_Inverse;
-    } else if ((event.modifierFlags & NSShiftKeyMask) && _selectedLines.count) {
+    } else if ((event.modifierFlags & NSEventModifierFlagShift) && _selectedLines.count) {
       _selectionMode = kSelectionMode_Extend;
     } else {
       _selectionMode = kSelectionMode_Replace;

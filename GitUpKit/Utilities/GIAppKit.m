@@ -174,7 +174,7 @@ static NSColor* _separatorColor = nil;
     NSRect bounds = self.bounds;
     CGFloat offset = self.textContainerOrigin.x + self.textContainerInset.width + self.textContainer.lineFragmentPadding;
     CGFloat charWidth = self.font.maximumAdvancement.width;  // TODO: Is this the most reliable way to get the character width of a fixed-width font?
-    CGContextRef context = [[NSGraphicsContext currentContext] graphicsPort];
+    CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
 
     CGContextSaveGState(context);
 
@@ -325,7 +325,7 @@ static NSColor* _separatorColor = nil;
 
 - (void)drawRect:(NSRect)dirtyRect {
   NSRect bounds = self.bounds;
-  CGContextRef context = [[NSGraphicsContext currentContext] graphicsPort];
+  CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
 
   [_separatorColor setStroke];
   CGContextMoveToPoint(context, 0, 0.5);
@@ -349,7 +349,7 @@ static NSColor* _separatorColor = nil;
 // NSTableView built-in fallback for tab key when not editable cell is around is to change the first responder to the next key view directly without using -selectNextKeyView:
 - (void)keyDown:(NSEvent*)event {
   if (event.keyCode == kGIKeyCode_Tab) {
-    if (event.modifierFlags & NSShiftKeyMask) {
+    if (event.modifierFlags & NSEventModifierFlagShift) {
       [self.window selectPreviousKeyView:nil];
     } else {
       [self.window selectNextKeyView:nil];

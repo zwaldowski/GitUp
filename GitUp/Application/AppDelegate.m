@@ -242,9 +242,9 @@
 
   _allowWelcome = -1;
 
-  _twitterButton.textAlignment = NSLeftTextAlignment;
+  _twitterButton.textAlignment = NSTextAlignmentLeft;
   _twitterButton.textFont = [NSFont boldSystemFontOfSize:11];
-  _forumsButton.textAlignment = NSLeftTextAlignment;
+  _forumsButton.textAlignment = NSTextAlignmentLeft;
   _forumsButton.textFont = [NSFont boldSystemFontOfSize:11];
 
   _preferencesToolbar.selectedItemIdentifier = kPreferencePaneIdentifier_General;
@@ -432,14 +432,11 @@
 #pragma mark - Tool
 
 static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef inputData, void* info) {
-  NSDictionary* input = [NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData*)inputData];
+  NSDictionary* input = [NSKeyedUnarchiver unarchivedObjectOfClasses:[NSSet setWithObjects:NSDictionary.class, NSString.class, nil] fromData:(__bridge NSData*)inputData error:NULL];
   GC_DEBUG_CHECK(input);
   NSDictionary* output = [(__bridge AppDelegate*)info _processToolCommand:input];
   GC_DEBUG_CHECK(output);
-  // TODO use +[NSKeyedArchiver archivedDataWithRootObject:] on 10.12+
-  NSMutableData* outputData = [NSMutableData data];
-  NSKeyedArchiver* archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:outputData];
-  [archiver encodeObject:archiver forKey:NSKeyedArchiveRootObjectKey];
+  NSData* outputData = [NSKeyedArchiver archivedDataWithRootObject:output requiringSecureCoding:YES error:NULL];
   return CFBridgingRetain(outputData);
 }
 
@@ -543,7 +540,8 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
   savePanel.prompt = NSLocalizedString(@"Create", nil);
   savePanel.nameFieldLabel = NSLocalizedString(@"Name:", nil);
   savePanel.showsTagField = NO;
-  if ([savePanel runModal] == NSFileHandlingPanelOKButton) {
+  [savePanel beginWithCompletionHandler:^(NSModalResponse result) {
+    if (result != NSModalResponseOK) { return; }
     NSString* path = savePanel.URL.path;
     NSError* error;
     if (![[NSFileManager defaultManager] fileExistsAtPath:path followLastSymlink:NO] || [[NSFileManager defaultManager] moveItemAtPathToTrash:path error:&error]) {
@@ -556,12 +554,12 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
     } else {
       [NSApp presentError:error];
     }
-  }
+  }];
 }
 
 - (void)_cloneRepositoryFromURLString:(NSString*)urlString {
   _cloneURLTextField.stringValue = urlString;
-  _cloneRecursiveButton.state = NSOnState;
+  _cloneRecursiveButton.state = NSControlStateValueOn;
   if ([NSApp runModalForWindow:_cloneWindow] && _cloneURLTextField.stringValue.length) {
     NSURL* url = GCURLFromGitURL(_cloneURLTextField.stringValue);
     if (url) {
@@ -572,7 +570,12 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
       savePanel.nameFieldLabel = NSLocalizedString(@"Name:", nil);
       savePanel.nameFieldStringValue = name ? name : @"";
       savePanel.showsTagField = NO;
-      if ([savePanel runModal] == NSFileHandlingPanelOKButton) {
+      [savePanel beginWithCompletionHandler:^(NSModalResponse result) {
+        if (result != NSModalResponseOK) {
+          [NSApp presentError:MAKE_ERROR(@"Invalid Git repository URL")];
+          return;
+        }
+
         NSString* path = savePanel.URL.path;
         NSError* error;
         if (![[NSFileManager defaultManager] fileExistsAtPath:path followLastSymlink:NO] || [[NSFileManager defaultManager] moveItemAtPathToTrash:path error:&error]) {
@@ -590,9 +593,7 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
         } else {
           [NSApp presentError:error];
         }
-      }
-    } else {
-      [NSApp presentError:MAKE_ERROR(@"Invalid Git repository URL")];
+      }];
     }
   }
 }

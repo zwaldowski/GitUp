@@ -81,7 +81,7 @@ int main(int argc, const char* argv[]) {
             NSString* appPath = [[[executablePath stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent];  // Remove "Contents/SharedSupport/{executable}"
             LSLaunchURLSpec spec = {0};
             spec.appURL = (__bridge CFURLRef)[NSURL fileURLWithPath:appPath isDirectory:YES];
-            spec.launchFlags = kLSLaunchNoParams | kLSLaunchAndDisplayErrors;
+            spec.launchFlags = kLSLaunchAndDisplayErrors;
             OSStatus status = LSOpenFromURLSpec(&spec, NULL);
             if (status == noErr) {
               CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
@@ -92,14 +92,11 @@ int main(int argc, const char* argv[]) {
                   NSMutableDictionary* message = [[NSMutableDictionary alloc] init];
                   [message setObject:[NSString stringWithUTF8String:command] forKey:kToolDictionaryKey_Command];
                   [message setObject:repositoryPath forKey:kToolDictionaryKey_Repository];
-                  // TODO use +[NSKeyedArchiver archivedDataWithRootObject:] on 10.12+
-                  NSMutableData* sendData = [NSMutableData data];
-                  NSKeyedArchiver* archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:sendData];
-                  [archiver encodeObject:message forKey:NSKeyedArchiveRootObjectKey];
+                  NSData* sendData = [NSKeyedArchiver archivedDataWithRootObject:message requiringSecureCoding:YES error:NULL];
                   CFDataRef returnData = NULL;
                   status = CFMessagePortSendRequest(messagePort, 0, (CFDataRef)sendData, kCommunicationTimeOut, kCommunicationTimeOut, kCFRunLoopDefaultMode, &returnData);
                   if (status == kCFMessagePortSuccess) {
-                    NSDictionary* response = [NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData*)returnData];
+                    NSDictionary* response = [NSKeyedUnarchiver unarchivedObjectOfClasses:[NSSet setWithObjects:NSDictionary.class, NSString.class, nil] fromData:(__bridge NSData*)returnData error:NULL];
                     NSString* error = [response objectForKey:kToolDictionaryKey_Error];
                     if (error) {
                       fprintf(stderr, "%s\n", error.UTF8String);
