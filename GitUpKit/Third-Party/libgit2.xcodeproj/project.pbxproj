@@ -1603,7 +1603,7 @@
 					"$(inherited)",
 					GIT_ARCH_64,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -1615,7 +1615,7 @@
 					"$(inherited)",
 					GIT_ARCH_64,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				SDKROOT = macosx;
 			};
 			name = Release;
