@@ -23,7 +23,6 @@
 #import "GIViewController+Utilities.h"
 
 #import "GIInterface.h"
-#import "XLFacilityMacros.h"
 
 @interface GIConflictResolverViewController () <GIDiffContentsViewControllerDelegate, GIDiffFilesViewControllerDelegate>
 @property(nonatomic, weak) IBOutlet NSTextField* oursTextField;
@@ -58,7 +57,7 @@
 }
 
 - (void)viewWillShow {
-  XLOG_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Disabled);
+  GC_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Disabled);
   self.repository.statusMode = kGCLiveRepositoryStatusMode_Unified;
 
   _oursTextField.stringValue = [NSString stringWithFormat:@"\"%@\" <%@>", _ourCommit.summary, _ourCommit.shortSHA1];
@@ -74,7 +73,7 @@
   [_diffContentsViewController setDeltas:nil usingConflicts:nil];
   [_diffFilesViewController setDeltas:nil usingConflicts:nil];
 
-  XLOG_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Unified);
+  GC_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Unified);
   self.repository.statusMode = kGCLiveRepositoryStatusMode_Disabled;
 }
 

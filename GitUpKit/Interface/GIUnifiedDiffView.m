@@ -168,7 +168,7 @@ typedef struct {
           }
           if (string == NULL) {
             string = CFSTR("<LINE IS NOT VALID UTF-8>\n");
-            XLOG_DEBUG_UNREACHABLE();
+            GC_DEBUG_UNREACHABLE();
           }
           [self _addLineWithString:string change:change oldLineNumber:oldLineNumber newLineNumber:newLineNumber contentBytes:contentBytes contentLength:contentLength];
           CFRelease(string);
@@ -255,7 +255,7 @@ typedef struct {
 
       if (info) {
         while (lineRange.location >= info->range.location + info->range.length) {
-          XLOG_DEBUG_CHECK(info != &_lineInfoList[_lineInfoCount - 1]);
+          GC_DEBUG_CHECK(info != &_lineInfoList[_lineInfoCount - 1]);
           ++info;
         }
       } else {
@@ -398,11 +398,11 @@ typedef struct {
 - (void)getSelectedText:(NSString**)text oldLines:(NSIndexSet**)oldLines newLines:(NSIndexSet**)newLines {
   if (text) {
     if (_selectedText.length > 0) {
-      XLOG_DEBUG_CHECK(!_selectedLines.count);
+      GC_DEBUG_CHECK(!_selectedLines.count);
       *text = [(NSString*)CFAttributedStringGetString(_string) substringWithRange:NSMakeRange(_selectedText.location, _selectedText.length)];
     }
     if (_selectedLines.count) {
-      XLOG_DEBUG_CHECK(!_selectedText.length);
+      GC_DEBUG_CHECK(!_selectedText.length);
       *text = [[NSMutableString alloc] init];
       [_selectedLines enumerateIndexesUsingBlock:^(NSUInteger index, BOOL* stop) {
         const LineInfo* info = &_lineInfoList[index];
@@ -479,14 +479,14 @@ typedef struct {
           break;
 
         case kSelectionMode_Replace: {
-          XLOG_DEBUG_CHECK(_selectedLines.count == 0);
+          GC_DEBUG_CHECK(_selectedLines.count == 0);
           [_selectedLines addIndex:info->index];
           _startLines = [_selectedLines copy];
           break;
         }
 
         case kSelectionMode_Extend: {
-          XLOG_DEBUG_CHECK(_selectedLines.count > 0);
+          GC_DEBUG_CHECK(_selectedLines.count > 0);
           _startLines = [_selectedLines copy];
           if (info->index > _startLines.lastIndex) {
             [_selectedLines addIndexesInRange:NSMakeRange(_startLines.lastIndex, info->index - _startLines.lastIndex + 1)];
@@ -572,7 +572,7 @@ typedef struct {
 
           case kSelectionMode_Replace:
           case kSelectionMode_Extend: {
-            XLOG_DEBUG_CHECK(_startLines.count > 0);
+            GC_DEBUG_CHECK(_startLines.count > 0);
             [_selectedLines removeAllIndexes];
             [_selectedLines addIndexes:_startLines];
             if (info->index > _startLines.lastIndex) {

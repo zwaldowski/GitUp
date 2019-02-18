@@ -137,7 +137,7 @@ cleanup:
   const char* nameUTF8 = name.UTF8String;
   git_strarray problems;
   CALL_LIBGIT2_FUNCTION_RETURN(NO, git_remote_rename, &problems, self.private, git_remote_name(remote.private), nameUTF8);
-  XLOG_DEBUG_CHECK(problems.count == 0);  // TODO: What should we do in case of problems?
+  GC_DEBUG_CHECK(problems.count == 0);  // TODO: What should we do in case of problems?
   git_strarray_free(&problems);
   git_remote* newRemote;
   CALL_LIBGIT2_FUNCTION_RETURN(NO, git_remote_lookup, &newRemote, self.private, nameUTF8);
@@ -165,7 +165,7 @@ cleanup:
 #pragma mark - Transfer
 
 - (NSUInteger)_transfer:(git_direction)direction withRemote:(git_remote*)remote refspecs:(const char**)refspecs count:(size_t)count tagMode:(GCFetchTagMode)tagMode prune:(BOOL)prune error:(NSError**)error {
-  XLOG_DEBUG_CHECK(!git_remote_connected(remote));
+  GC_DEBUG_CHECK(!git_remote_connected(remote));
   NSUInteger updatedTips = NSNotFound;
   const char* remoteURL = git_remote_url(remote);
   NSURL* url = remoteURL ? GCURLFromGitURL([NSString stringWithUTF8String:remoteURL]) : nil;
@@ -408,7 +408,7 @@ cleanup:
       git_reference* reference;
       int status = git_reference_lookup(&reference, self.private, head->name);
       if (status == GIT_ENOTFOUND) {
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         continue;
       }
       CHECK_LIBGIT2_FUNCTION_CALL(return nil, status, == GIT_OK);
@@ -467,7 +467,7 @@ cleanup:
 
 // TODO: Add low-level API to libgit2
 static BOOL _SetBranchDefaultUpstream(git_repository* repository, git_remote* remote, git_reference* branch, NSError** error) {
-  XLOG_DEBUG_CHECK(git_reference_is_branch(branch));
+  GC_DEBUG_CHECK(git_reference_is_branch(branch));
   const char* name = git_reference_name(branch);
   const char* shortName = git_reference_shorthand(branch);
   char* buffer1;
@@ -626,7 +626,7 @@ cleanup:
         break;
       }
     }
-    XLOG_DEBUG_CHECK(*name);
+    GC_DEBUG_CHECK(*name);
   }
   return [[GCRemote alloc] initWithRepository:self remote:remote];
 }

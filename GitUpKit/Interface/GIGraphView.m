@@ -317,7 +317,7 @@ static const void* _associatedObjectDataKey = &_associatedObjectDataKey;
   if (_selectedNode) {
     [self _showContextualMenuForNode:_selectedNode];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -337,7 +337,7 @@ static const void* _associatedObjectDataKey = &_associatedObjectDataKey;
 
 // We need to retain the underlying commit for later as GINode doesn't retain its commit
 - (void)_setSelectedNode:(GINode*)node display:(BOOL)display scroll:(BOOL)scroll notify:(BOOL)notify {
-  XLOG_DEBUG_CHECK(!node.dummy);
+  GC_DEBUG_CHECK(!node.dummy);
   if (node != _selectedNode) {
     if (display && _selectedNode) {
       NSPoint point = [self positionForNode:_selectedNode];
@@ -352,7 +352,7 @@ static const void* _associatedObjectDataKey = &_associatedObjectDataKey;
     [self setNeedsDisplay:YES];
 #endif
     if (scroll) {
-      XLOG_DEBUG_CHECK(_selectedNode);
+      GC_DEBUG_CHECK(_selectedNode);
       [self scrollToSelection];
     }
     if (notify) {
@@ -431,7 +431,7 @@ static const void* _associatedObjectDataKey = &_associatedObjectDataKey;
     if (node) {
       if (node.layer.index == 0) {
         node = [_graph nodeForCommit:node.commit];  // Convert virtual node from top layer to real one
-        XLOG_DEBUG_CHECK(node);
+        GC_DEBUG_CHECK(node);
       }
       [_delegate graphView:self didDoubleClickOnNode:node];
     }
@@ -444,7 +444,7 @@ static const void* _associatedObjectDataKey = &_associatedObjectDataKey;
     if (node.dummy) {
       if (node.layer.index == 0) {
         node = [_graph nodeForCommit:node.commit];  // Convert virtual node from top layer to real one
-        XLOG_DEBUG_CHECK(node);
+        GC_DEBUG_CHECK(node);
         scroll = YES;
       } else {
         node = nil;
@@ -558,7 +558,7 @@ static void _DrawNode(GINode* node, CGContextRef context, CGFloat x, CGFloat y) 
 
 static void _DrawTipNode(GINode* node, CGContextRef context, CGFloat x, CGFloat y) {
   BOOL onBranchMainLine = node.primaryLine.branchMainLine;
-  XLOG_DEBUG_CHECK(onBranchMainLine);
+  GC_DEBUG_CHECK(onBranchMainLine);
   CGColorRef color = onBranchMainLine ? node.primaryLine.color.CGColor : [[NSColor darkGrayColor] CGColor];
   CGFloat diameter = onBranchMainLine ? kMainLineNodeLargeDiameter : kSubNodeDiameter;
   if (node.dummy) {
@@ -601,7 +601,7 @@ static void _DrawLine(GILine* line, CGContextRef context, CGFloat offset, CGFloa
   CGPoint* pointList;
   NSData* data = objc_getAssociatedObject(line, _associatedObjectDataKey);
   if (data) {
-    XLOG_DEBUG_CHECK(data.length % sizeof(CGPoint) == 0);
+    GC_DEBUG_CHECK(data.length % sizeof(CGPoint) == 0);
     pointCount = data.length / sizeof(CGPoint);
     pointList = (CGPoint*)data.bytes;
     recompute = NO;
@@ -624,7 +624,7 @@ static void _DrawLine(GILine* line, CGContextRef context, CGFloat offset, CGFloa
         pointList[pointCount].y = y;
         ++pointCount;
       }
-      XLOG_DEBUG_CHECK(pointCount == count);
+      GC_DEBUG_CHECK(pointCount == count);
     } else if (count == 2) {
       GINode* node0 = nodes[0];
       pointList[pointCount].x = CONVERT_X(node0.x);
@@ -634,10 +634,10 @@ static void _DrawLine(GILine* line, CGContextRef context, CGFloat offset, CGFloa
       pointList[pointCount].x = CONVERT_X(node1.x);
       pointList[pointCount].y = CONVERT_Y(offset - node1.layer.y);
       ++pointCount;
-      XLOG_DEBUG_CHECK(pointCount == count);
+      GC_DEBUG_CHECK(pointCount == count);
     } else {
-      XLOG_DEBUG_CHECK(count == 1);
-      XLOG_DEBUG_CHECK(pointCount == 0);
+      GC_DEBUG_CHECK(count == 1);
+      GC_DEBUG_CHECK(pointCount == 0);
     }
   }
   if (pointCount == 0) {
@@ -699,7 +699,7 @@ static void _DrawLine(GILine* line, CGContextRef context, CGFloat offset, CGFloa
     newPointList[newPointCount].x = pointList[pointCount - 1].x;
     newPointList[newPointCount].y = pointList[pointCount - 1].y;
     ++newPointCount;
-    XLOG_DEBUG_CHECK(newPointCount <= pointCount);
+    GC_DEBUG_CHECK(newPointCount <= pointCount);
     free(pointList);
     pointList = newPointList;
     pointCount = newPointCount;
@@ -723,7 +723,7 @@ static void _DrawLine(GILine* line, CGContextRef context, CGFloat offset, CGFloa
 #pragma clang diagnostic ignored "-Wfloat-equal"
       CGFloat D = kLineCornerSize;
 
-      XLOG_DEBUG_CHECK(y1 != y0);
+      GC_DEBUG_CHECK(y1 != y0);
       CGFloat X0;
       CGFloat Y0;
       CGFloat X1;
@@ -744,7 +744,7 @@ static void _DrawLine(GILine* line, CGContextRef context, CGFloat offset, CGFloa
         if (Y0 >= y0) {
           X0 = (-K0 - A * B + A * y0 + x0) / (A * A + 1);
           Y0 = A * X0 + B;
-          XLOG_DEBUG_CHECK(Y0 < y0);
+          GC_DEBUG_CHECK(Y0 < y0);
         }
 
         CGFloat K1 = sqrt(A * A * D * D - A * A * x1 * x1 - 2 * A * B * x1 + 2 * A * x1 * y1 - B * B + 2 * B * y1 + D * D - y1 * y1);
@@ -753,10 +753,10 @@ static void _DrawLine(GILine* line, CGContextRef context, CGFloat offset, CGFloa
         if (Y1 <= y1) {
           X1 = (-K1 - A * B + A * y1 + x1) / (A * A + 1);
           Y1 = A * X1 + B;
-          XLOG_DEBUG_CHECK(Y1 > y1);
+          GC_DEBUG_CHECK(Y1 > y1);
         }
       }
-      XLOG_DEBUG_CHECK(Y1 < Y0);
+      GC_DEBUG_CHECK(Y1 < Y0);
 #pragma clang diagnostic pop
 
       newPointList[newPointCount].x = X0;
@@ -772,7 +772,7 @@ static void _DrawLine(GILine* line, CGContextRef context, CGFloat offset, CGFloa
       x0 = x1;
       y0 = y1;
     }
-    XLOG_DEBUG_CHECK(newPointCount == newMaxPoints);
+    GC_DEBUG_CHECK(newPointCount == newMaxPoints);
     free(pointList);
     pointList = newPointList;
     pointCount = newPointCount;
@@ -1111,7 +1111,7 @@ static void _DrawNodeLabels(CGContextRef context, CGFloat x, CGFloat y, GINode* 
 
     CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString(string);
     CGSize size = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, CFAttributedStringGetLength(string)), NULL, CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX), NULL);
-    XLOG_DEBUG_CHECK(size.height <= kNodeLabelMaxHeight);
+    GC_DEBUG_CHECK(size.height <= kNodeLabelMaxHeight);
     CGRect textRect = CGRectMake(kLabelOffsetX, kLabelOffsetY, ceil(size.width), ceil(size.height));
     CGPathRef path = CGPathCreateWithRect(textRect, NULL);
     CTFrameRef frame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, CFAttributedStringGetLength(string)), path, NULL);
@@ -1286,7 +1286,7 @@ static void _DrawSelectedNode(CGContextRef context, CGFloat x, CGFloat y, GINode
 
   CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString(string);
   CGSize size = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, CFAttributedStringGetLength(string)), NULL, CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX), NULL);
-  XLOG_DEBUG_CHECK(size.height <= kSelectedLabelMaxHeight);
+  GC_DEBUG_CHECK(size.height <= kSelectedLabelMaxHeight);
   CGRect textRect = CGRectMake(kSelectedOffsetX, -ceil(size.height) / 2, ceil(size.width), ceil(size.height));
   CGPathRef path = CGPathCreateWithRect(textRect, NULL);
   CTFrameRef frame = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, CFAttributedStringGetLength(string)), path, NULL);
@@ -1379,7 +1379,7 @@ static void _DrawSelectedNode(CGContextRef context, CGFloat x, CGFloat y, GINode
 }
 
 - (NSUInteger)_indexOfLayerContainingPosition:(CGFloat)position {
-  XLOG_DEBUG_CHECK(_graph.layers.count);
+  GC_DEBUG_CHECK(_graph.layers.count);
   NSArray* layers = _graph.layers;
   CGFloat offset = _graph.size.height;
 
@@ -1499,7 +1499,7 @@ static void _DrawSelectedNode(CGContextRef context, CGFloat x, CGFloat y, GINode
       GILine* line = lines[i];
       BOOL onBranchMainLine = line.branchMainLine;
       BOOL virtualLine = line.virtual;
-      XLOG_DEBUG_CHECK(!virtualLine || [[(GINode*)line.nodes[0] layer] index] == 0);
+      GC_DEBUG_CHECK(!virtualLine || [[(GINode*)line.nodes[0] layer] index] == 0);
       if (virtualLine) {
         onBranchMainLine = NO;
       }

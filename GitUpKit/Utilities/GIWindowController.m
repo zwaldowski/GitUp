@@ -24,7 +24,7 @@
 #import "GIColorView.h"
 #import "GIConstants.h"
 
-#import "XLFacilityMacros.h"
+#import "GCMacros.h"
 #import "GIGraphView.h"
 
 #define kOverlayAnimationInDuration 0.2  // seconds
@@ -111,7 +111,7 @@ static void _WalkViewTree(NSView* view, NSMutableArray* array) {
     }
     [self makeFirstResponder:array[index]];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -177,7 +177,7 @@ static void _TimerCallBack(CFRunLoopTimerRef timer, void* info) {
 - (instancetype)initWithWindow:(NSWindow*)window {
   if ((self = [super initWithWindow:window])) {
     [[NSBundle bundleForClass:[GIWindowController class]] loadNibNamed:@"GIWindowController" owner:self topLevelObjects:NULL];
-    XLOG_DEBUG_CHECK(_overlayView);
+    GC_DEBUG_CHECK(_overlayView);
 
     _area = [[NSTrackingArea alloc] initWithRect:NSZeroRect options:(NSTrackingInVisibleRect | NSTrackingActiveAlways | NSTrackingMouseEnteredAndExited) owner:self userInfo:nil];
     [_overlayView addTrackingArea:_area];
@@ -277,7 +277,7 @@ static void _TimerCallBack(CFRunLoopTimerRef timer, void* info) {
 
     CFRunLoopTimerSetNextFireDate(_overlayTimer, HUGE_VALF);
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -310,15 +310,15 @@ static void _TimerCallBack(CFRunLoopTimerRef timer, void* info) {
 }
 
 - (void)runModalView:(NSView*)view withInitialFirstResponder:(NSResponder*)responder completionHandler:(void (^)(BOOL success))handler {
-  XLOG_DEBUG_CHECK(_modalView);
-  XLOG_DEBUG_CHECK(!_handler);
+  GC_DEBUG_CHECK(_modalView);
+  GC_DEBUG_CHECK(!_handler);
 
   _previousResponder = self.window.firstResponder;
   [self.window makeFirstResponder:nil];  // Must happen before to abort any text field editing
 
   [[NSProcessInfo processInfo] disableSuddenTermination];
 
-  XLOG_DEBUG_CHECK(self.window.areCursorRectsEnabled);
+  GC_DEBUG_CHECK(self.window.areCursorRectsEnabled);
   [self.window disableCursorRects];  // TODO: Looks like cursor rects are automatically re-enabled when resizing the window?!
   [[NSCursor arrowCursor] set];
 
@@ -338,7 +338,7 @@ static void _TimerCallBack(CFRunLoopTimerRef timer, void* info) {
 }
 
 - (void)stopModalView:(BOOL)success {
-  XLOG_DEBUG_CHECK(_handler);
+  GC_DEBUG_CHECK(_handler);
 
   [self.window makeFirstResponder:_previousResponder];
   _previousResponder = nil;

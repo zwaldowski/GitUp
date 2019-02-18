@@ -25,7 +25,6 @@
 #import "GIInterface.h"
 #import "GCRepository+Utilities.h"
 #import "GCHistory+Rewrite.h"
-#import "XLFacilityMacros.h"
 
 @interface GICommitRewriterViewController () <GIDiffContentsViewControllerDelegate, GIDiffFilesViewControllerDelegate>
 @property(nonatomic, weak) IBOutlet NSTextField* titleTextField;
@@ -76,10 +75,10 @@
 }
 
 - (void)viewWillShow {
-  XLOG_DEBUG_CHECK(_targetCommit != nil);
+  GC_DEBUG_CHECK(_targetCommit != nil);
   [super viewWillShow];
 
-  XLOG_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Disabled);
+  GC_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Disabled);
   self.repository.statusMode = kGCLiveRepositoryStatusMode_Unified;
 
   self.messageTextView.string = _targetCommit.message;
@@ -95,7 +94,7 @@
   [_diffContentsViewController setDeltas:nil usingConflicts:nil];
   [_diffFilesViewController setDeltas:nil usingConflicts:nil];
 
-  XLOG_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Unified);
+  GC_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Unified);
   self.repository.statusMode = kGCLiveRepositoryStatusMode_Disabled;
 }
 
@@ -129,12 +128,12 @@
   } else {
     success = YES;
   }
-  XLOG_DEBUG_CHECK(!success || [self.repository checkClean:0 error:NULL]);
+  GC_DEBUG_CHECK(!success || [self.repository checkClean:0 error:NULL]);
   return success;
 }
 
 - (BOOL)startRewritingCommit:(GCHistoryCommit*)commit error:(NSError**)error {
-  XLOG_DEBUG_CHECK(_targetCommit == nil);
+  GC_DEBUG_CHECK(_targetCommit == nil);
 
   // Check that repository is completely clean (don't even allow untracked files)
   if (![self.repository checkClean:0 error:error]) {
@@ -164,7 +163,7 @@
 }
 
 - (BOOL)cancelRewritingCommit:(NSError**)error {
-  XLOG_DEBUG_CHECK(_targetCommit != nil);
+  GC_DEBUG_CHECK(_targetCommit != nil);
   BOOL success = [self _restoreHEAD:error];
   _savedHEAD = nil;
   _targetCommit = nil;
@@ -173,7 +172,7 @@
 }
 
 - (BOOL)finishRewritingCommitWithMessage:(NSString*)message error:(NSError**)error {
-  XLOG_DEBUG_CHECK(_targetCommit != nil);
+  GC_DEBUG_CHECK(_targetCommit != nil);
   BOOL success = NO;
   GCCommit* newCommit;
   GCIndex* index;
@@ -268,7 +267,7 @@ cleanup:
 }
 
 - (NSMenu*)diffContentsViewController:(GIDiffContentsViewController*)controller willShowContextualMenuForDelta:(GCDiffDelta*)delta conflict:(GCIndexConflict*)conflict {
-  XLOG_DEBUG_CHECK(conflict == nil);
+  GC_DEBUG_CHECK(conflict == nil);
   return [self contextualMenuForDelta:delta withConflict:nil allowOpen:YES];
 }
 

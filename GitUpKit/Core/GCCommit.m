@@ -35,10 +35,10 @@ static inline NSString* _ConvertMessage(GCCommit* commit, const char* message, s
   if (string == nil) {
     string = [[NSString alloc] initWithBytesNoCopy:(void*)message length:length encoding:NSASCIIStringEncoding freeWhenDone:NO];
     if (string) {
-      XLOG_WARNING(@"Using ASCII encoding instead of UTF-8 to interpret message for commit %@", commit.shortSHA1);
+      os_log(OS_LOG_DEFAULT, "Using ASCII encoding instead of UTF-8 to interpret message for commit %@", commit.shortSHA1);
     } else {
-      XLOG_WARNING(@"Failed interpreting message for commit %@ using ASCII encoding", commit.shortSHA1);
-      XLOG_DEBUG_UNREACHABLE();
+      os_log(OS_LOG_DEFAULT, "Failed interpreting message for commit %@ using ASCII encoding", commit.shortSHA1);
+      GC_DEBUG_UNREACHABLE();
       string = @"";
     }
   }
@@ -53,7 +53,7 @@ static inline NSString* _ConvertMessage(GCCommit* commit, const char* message, s
       --length;
     }
   } else {
-    XLOG_WARNING(@"Empty message for commit %s", git_oid_tostr_s(git_commit_id((git_commit*)_private)));
+    os_log(OS_LOG_DEFAULT, "Empty message for commit %s", git_oid_tostr_s(git_commit_id((git_commit*)_private)));
   }
   return _ConvertMessage(self, message, length, git_commit_message_encoding((git_commit*)_private));
 }
@@ -140,7 +140,7 @@ static inline NSString* _ConvertMessage(GCCommit* commit, const char* message, s
 }
 
 static inline NSComparisonResult _TimeCompare(GCCommit* commit1, GCCommit* commit2) {
-  XLOG_DEBUG_CHECK(commit1 != commit2);
+  GC_DEBUG_CHECK(commit1 != commit2);
   git_time_t time1 = git_commit_time((git_commit*)commit1->_private);
   git_time_t time2 = git_commit_time((git_commit*)commit2->_private);
   if (time1 < time2) {
@@ -181,7 +181,7 @@ static inline NSComparisonResult _TimeCompare(GCCommit* commit1, GCCommit* commi
 
 - (GCCommit*)findCommitWithSHA1Prefix:(NSString*)prefix error:(NSError**)error {
   size_t length = strlen(prefix.UTF8String);
-  XLOG_DEBUG_CHECK(length >= GIT_OID_MINPREFIXLEN);
+  GC_DEBUG_CHECK(length >= GIT_OID_MINPREFIXLEN);
   git_oid oid;
   if (!GCGitOIDFromSHA1Prefix(prefix, &oid, error)) {
     return nil;

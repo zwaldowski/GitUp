@@ -22,7 +22,7 @@
 
 #import "GIModalView.h"
 
-#import "XLFacilityMacros.h"
+#import "GCMacros.h"
 
 #define __ENABLE_BLUR__ 0
 
@@ -78,7 +78,7 @@
 }
 
 - (void)presentContentView:(NSView*)view withCompletionHandler:(dispatch_block_t)handler {
-  XLOG_DEBUG_CHECK(self.subviews.count == 0);
+  GC_DEBUG_CHECK(self.subviews.count == 0);
 
   NSRect bounds = self.bounds;
   NSRect frame = view.frame;
@@ -123,7 +123,7 @@
 }
 
 - (void)dismissContentViewWithCompletionHandler:(dispatch_block_t)handler {
-  XLOG_DEBUG_CHECK(self.subviews.count == 1);
+  GC_DEBUG_CHECK(self.subviews.count == 1);
 
   NSView* view = self.subviews.firstObject;
 #if __ENABLE_BLUR__

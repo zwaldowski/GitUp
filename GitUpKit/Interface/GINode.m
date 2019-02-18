@@ -46,7 +46,7 @@
 }
 
 - (GINode*)parentAtIndex:(NSUInteger)index {
-  XLOG_DEBUG_CHECK(index < _parentCount);
+  GC_DEBUG_CHECK(index < _parentCount);
   if (_parentCount == 1) {
     return _mainParent;
   }
@@ -68,7 +68,7 @@
     CFArrayAppendValue(array, parent);
     _additionalParents = array;
   } else {
-    XLOG_DEBUG_CHECK(CFArrayGetCount(_additionalParents) == (CFIndex)_parentCount);
+    GC_DEBUG_CHECK(CFArrayGetCount(_additionalParents) == (CFIndex)_parentCount);
     CFArrayAppendValue(_additionalParents, parent);
   }
   _parentCount += 1;

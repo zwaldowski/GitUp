@@ -22,7 +22,7 @@
 #import "GIAppKit.h"
 #import "GIConstants.h"
 
-#import "XLFacilityMacros.h"
+#import "GCMacros.h"
 
 #define kSummaryMaxWidth 50
 #define kBodyMaxWidth 72
@@ -70,7 +70,7 @@ static NSColor* _separatorColor = nil;
 @implementation NSView (GIAppKit)
 
 - (void)replaceWithView:(NSView*)view {
-  XLOG_DEBUG_CHECK(self.superview);
+  GC_DEBUG_CHECK(self.superview);
   view.frame = self.frame;
   view.autoresizingMask = self.autoresizingMask;
   [self.superview replaceSubview:self with:view];
@@ -213,7 +213,7 @@ static NSColor* _separatorColor = nil;
         [self setNeedsDisplay:YES];  // TODO: Why is this needed to refresh?
       }
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
   } else {
     [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];

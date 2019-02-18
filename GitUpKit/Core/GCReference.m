@@ -84,7 +84,7 @@
 @implementation GCRepository (GCReference_Private)
 
 - (id)findReferenceWithFullName:(NSString*)fullname class:(Class) class error:(NSError**)error {
-  XLOG_DEBUG_CHECK([class isSubclassOfClass:[GCReference class]]);
+  GC_DEBUG_CHECK([class isSubclassOfClass:[GCReference class]]);
   git_reference* reference;
   CALL_LIBGIT2_FUNCTION_RETURN(nil, git_reference_lookup, &reference, self.private, fullname.UTF8String);
   return [[class alloc] initWithRepository:self reference:reference];
@@ -143,7 +143,7 @@ cleanup:
   if (git_reference_type(reference) == GIT_REF_SYMBOLIC) {
     CALL_LIBGIT2_FUNCTION_GOTO(cleanup, git_reference_resolve, &resolvedReference, reference);
   }
-  XLOG_DEBUG_CHECK(git_reference_type(resolvedReference) == GIT_REF_OID);
+  GC_DEBUG_CHECK(git_reference_type(resolvedReference) == GIT_REF_OID);
   git_oid_cpy(oid, git_reference_target(resolvedReference));
   success = YES;
 
@@ -168,7 +168,7 @@ cleanup:
       break;
     }
 
-    XLOG_DEBUG_CHECK(git_reference_type(currentReference) == GIT_REF_SYMBOLIC);
+    GC_DEBUG_CHECK(git_reference_type(currentReference) == GIT_REF_SYMBOLIC);
     const char* targetName = git_reference_symbolic_target(currentReference);
     git_reference* targetReference;
     int status = git_reference_lookup(&targetReference, self.private, targetName);

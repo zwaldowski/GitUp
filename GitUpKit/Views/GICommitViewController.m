@@ -20,7 +20,6 @@
 #import "GICommitViewController.h"
 
 #import "GIInterface.h"
-#import "XLFacilityMacros.h"
 
 @implementation GICommitViewController {
   NSString* _headCommitMessage;
@@ -29,7 +28,7 @@
 #if DEBUG
 
 + (instancetype)allocWithZone:(struct _NSZone*)zone {
-  XLOG_DEBUG_CHECK(self != [GICommitViewController class]);
+  GC_DEBUG_CHECK(self != [GICommitViewController class]);
   return [super allocWithZone:zone];
 }
 
@@ -114,7 +113,7 @@
       if (mergeMessage) {
         message = mergeMessage;
       } else {
-        XLOG_ERROR(@"Failed reading MERGE_MSG from \"%@\":%@ ", self.repository.repositoryPath, error);
+        os_log_error(OS_LOG_DEFAULT, "Failed reading MERGE_MSG from \"%@\":%@ ", self.repository.repositoryPath, error);
       }
     }
 
@@ -190,7 +189,7 @@
   GCCommit* newCommit;
   [self.repository setUndoActionName:NSLocalizedString(@"Commit", nil)];
   if (_amendButton.state) {
-    XLOG_DEBUG_CHECK(self.repository.state != kGCRepositoryState_Merge);
+    GC_DEBUG_CHECK(self.repository.state != kGCRepositoryState_Merge);
     newCommit = [self.repository performHEADCommitAmendingWithMessage:message error:&error];
   } else {
     GCCommit* otherParent = nil;

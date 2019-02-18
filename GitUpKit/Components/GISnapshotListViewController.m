@@ -22,7 +22,6 @@
 
 #import "GIInterface.h"
 #import "GCRepository+Utilities.h"
-#import "XLFacilityMacros.h"
 
 @interface GISnapshotListViewController () <NSTableViewDataSource>
 @property(nonatomic, weak) IBOutlet GITableView* tableView;

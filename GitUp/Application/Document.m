@@ -18,8 +18,6 @@
 #import "Common.h"
 #import "AppDelegate.h"
 
-#import <GitUpKit/XLFacilityMacros.h>
-
 #ifndef kCFCoreFoundationVersionNumber10_12
 #define kCFCoreFoundationVersionNumber10_12 1348.1
 #endif
@@ -73,7 +71,7 @@ static inline NSString* _WindowModeStringFromID(WindowModeID mode) {
     case kWindowModeID_Stashes:
       return kWindowModeString_Stashes;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return nil;
 }
 
@@ -87,7 +85,7 @@ static inline WindowModeID _WindowModeIDFromString(NSString* mode) {
   if ([mode isEqualToString:kWindowModeString_Stashes]) {
     return kWindowModeID_Stashes;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return (WindowModeID)0;
 }
 
@@ -146,7 +144,7 @@ static inline WindowModeID _WindowModeIDFromString(NSString* mode) {
       _helpPlist = [NSPropertyListSerialization propertyListWithData:data options:NSPropertyListImmutable format:NULL error:NULL];
     }
   }
-  XLOG_DEBUG_CHECK(_helpPlist);
+  GC_DEBUG_CHECK(_helpPlist);
 }
 
 static void _CheckTimerCallBack(CFRunLoopTimerRef timer, void* info) {
@@ -186,7 +184,7 @@ static void _CheckTimerCallBack(CFRunLoopTimerRef timer, void* info) {
 
 #if DEBUG
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-    XLOG_DEBUG_CHECK([GCLiveRepository allocatedCount] == [[[NSDocumentController sharedDocumentController] documents] count]);
+    GC_DEBUG_CHECK([GCLiveRepository allocatedCount] == [[[NSDocumentController sharedDocumentController] documents] count]);
   });
 #endif
 }
@@ -197,7 +195,7 @@ static void _CheckTimerCallBack(CFRunLoopTimerRef timer, void* info) {
     if ([keyPath isEqualToString:kUserDefaultsKey_DiffWhitespaceMode]) {
       _repository.diffWhitespaceMode = [[NSUserDefaults standardUserDefaults] integerForKey:kUserDefaultsKey_DiffWhitespaceMode];
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
   } else {
     [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
@@ -216,7 +214,7 @@ static void _CheckTimerCallBack(CFRunLoopTimerRef timer, void* info) {
 #if DEBUG
       if ([NSEvent modifierFlags] & NSAlternateKeyMask) {
         [[NSFileManager defaultManager] removeItemAtPath:_repository.privateAppDirectoryPath error:NULL];
-        XLOG_WARNING(@"Resetting private data for repository \"%@\"", _repository.repositoryPath);
+        os_log(OS_LOG_DEFAULT, "Resetting private data for repository \"%@\"", _repository.repositoryPath);
       }
 #endif
       _repository.delegate = self;
@@ -231,7 +229,7 @@ static void _CheckTimerCallBack(CFRunLoopTimerRef timer, void* info) {
 
 #if DEBUG
       dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        XLOG_DEBUG_CHECK([GCLiveRepository allocatedCount] == [[[NSDocumentController sharedDocumentController] documents] count]);
+        GC_DEBUG_CHECK([GCLiveRepository allocatedCount] == [[[NSDocumentController sharedDocumentController] documents] count]);
       });
 #endif
 
@@ -246,7 +244,7 @@ static void _CheckTimerCallBack(CFRunLoopTimerRef timer, void* info) {
 
   CFRunLoopTimerSetNextFireDate(_checkTimer, HUGE_VALF);
 
-  XLOG_DEBUG_CHECK(_mainWindow);
+  GC_DEBUG_CHECK(_mainWindow);
   [_repository setUserInfo:_mainWindow.stringWithSavedFrame forKey:kRepositoryUserInfoKey_MainWindowFrame];
 
   _repository.delegate = nil;  // Make sure that if the GCLiveRepository is still around afterwards, it won't call back to the dealloc'ed document
@@ -298,7 +296,7 @@ static void _CheckTimerCallBack(CFRunLoopTimerRef timer, void* info) {
   [_mapControllerView replaceWithView:_mapViewController.view];
   _mapView.frame = _mapContainerView.bounds;
   [_mapContainerView addSubview:_mapView];
-  XLOG_DEBUG_CHECK(_mapContainerView.subviews.firstObject == _mapView);
+  GC_DEBUG_CHECK(_mapContainerView.subviews.firstObject == _mapView);
   [self _updateStatusBar];
 
   _tagsViewController = [[GICommitListViewController alloc] initWithRepository:_repository];
@@ -390,7 +388,7 @@ static void _CheckTimerCallBack(CFRunLoopTimerRef timer, void* info) {
 
 - (BOOL)presentError:(NSError*)error {
   if (error == nil) {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     return NO;
   }
 
@@ -508,14 +506,14 @@ static void _CheckTimerCallBack(CFRunLoopTimerRef timer, void* info) {
 
 // TODO: Search field placeholder strings must all be about the same length since NSSearchField doesn't recenter updated placeholder strings properly
 - (void)_documentDidOpen:(id)restored {
-  XLOG_DEBUG_CHECK(_mainWindow.visible);
+  GC_DEBUG_CHECK(_mainWindow.visible);
 
   // Work around a bug of NSSearchField which is always enabled after restoration even if set to disabled during restoration
   [self _updateToolBar];
 
   // Check if a clone is needed
   if (_cloneMode != kCloneMode_None) {
-    XLOG_DEBUG_CHECK(_repository.empty && !restored);
+    GC_DEBUG_CHECK(_repository.empty && !restored);
     NSError* error;
     GCRemote* remote = [_repository lookupRemoteWithName:@"origin" error:&error];
     if (remote) {
@@ -598,7 +596,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
     case kGCRepositoryState_ApplyMailboxOrRebase:
       return NSLocalizedString(@"apply mailbox", nil);
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return nil;
 }
 
@@ -673,7 +671,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
               }
             } else {
               _infoTextField2.stringValue = @"";
-              XLOG_DEBUG_UNREACHABLE();
+              GC_DEBUG_UNREACHABLE();
             }
           }
         }
@@ -895,7 +893,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
       showHelp = YES;
     }
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
   if (showHelp) {
     NSRect contentBounds = _contentView.bounds;
@@ -943,7 +941,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
   if (commitList) {
     [_quickViewCommits addObjectsFromArray:commitList];
     _quickViewIndex = [_quickViewCommits indexOfObjectIdenticalTo:commit];
-    XLOG_DEBUG_CHECK(_quickViewIndex != NSNotFound);
+    GC_DEBUG_CHECK(_quickViewIndex != NSNotFound);
   } else {
     [_quickViewCommits addObject:commit];
     _quickViewIndex = 0;
@@ -1127,14 +1125,14 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
   if (windowMode) {
     [self _setWindowMode:windowMode];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 
   if (!_ready) {
     [self performSelector:@selector(_documentDidOpen:) withObject:[NSNull null] afterDelay:0.0];
     _ready = YES;
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -1151,7 +1149,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
   } else if ([identifier isEqualToString:kToolbarItem_Right]) {
     item.view = _rightView;
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
   return item;
 }
@@ -1450,7 +1448,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
       [self presentError:error];
     }
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     _mapViewController.previewHistory = nil;
   }
 }
@@ -1831,7 +1829,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
   if (query.length) {
     CFAbsoluteTime time = CFAbsoluteTimeGetCurrent();
     NSArray* results = [_repository findCommitsMatching:query];
-    XLOG_VERBOSE(@"Searched %lu commits in \"%@\" for \"%@\" in %.3f seconds finding %lu matches", _repository.history.allCommits.count, _repository.repositoryPath, self.searchField.stringValue, CFAbsoluteTimeGetCurrent() - time, results.count);
+    os_log_debug(OS_LOG_DEFAULT, "Searched %lu commits in \"%@\" for \"%@\" in %.3f seconds finding %lu matches", _repository.history.allCommits.count, _repository.repositoryPath, self.searchField.stringValue, CFAbsoluteTimeGetCurrent() - time, results.count);
 
     _searchResultsViewController.results = results;
     if (_searchView.superview == nil) {
@@ -1867,7 +1865,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
   } else if ([_windowMode isEqualToString:kWindowModeString_Map_Config]) {
     [self _exitConfig];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -1910,24 +1908,24 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
           _updatedReferences = updatedReferences;
           if (_updatedReferences.count) {
             [_windowController showOverlayWithStyle:kGIOverlayStyle_Informational message:NSLocalizedString(@"New commits are available from the repository remotes - Use Fetch to retrieve them", nil)];
-            XLOG_VERBOSE(@"Repository is out-of-sync with its remotes: %@", _updatedReferences.allKeys);
+            os_log_debug(OS_LOG_DEFAULT, "Repository is out-of-sync with its remotes: %@", _updatedReferences.allKeys);
           } else {
             if (sender) {
               [_windowController showOverlayWithStyle:kGIOverlayStyle_Informational message:NSLocalizedString(@"Repository is up-to-date", nil)];
             }
-            XLOG_VERBOSE(@"Repository is up-to-date with its remotes");
+            os_log_debug(OS_LOG_DEFAULT, "Repository is up-to-date with its remotes");
           }
 
           _checkingForChanges = NO;
           [self _resetCheckTimer];
           [self _updateStatusBar];
         } else {
-          XLOG_WARNING(@"Remote check completed after document was closed");
+          os_log(OS_LOG_DEFAULT, "Remote check completed after document was closed");
         }
       });
     });
   } else {
-    XLOG_DEBUG_UNREACHABLE();  // Not sure how this can happen but it has in the field
+    GC_DEBUG_UNREACHABLE();  // Not sure how this can happen but it has in the field
   }
 }
 
@@ -1960,7 +1958,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
 }
 
 - (IBAction)openSubmoduleMenu:(id)sender {
-  XLOG_DEBUG_UNREACHABLE();  // This action only exists to populate the menu in -validateUserInterfaceItem:
+  GC_DEBUG_UNREACHABLE();  // This action only exists to populate the menu in -validateUserInterfaceItem:
 }
 
 - (IBAction)_openSubmodule:(id)sender {

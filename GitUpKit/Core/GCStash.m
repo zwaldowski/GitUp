@@ -41,7 +41,7 @@
       }
       git_reference_free(reference);
       if (git_oid_iszero(&_target)) {
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         GC_SET_GENERIC_ERROR(@"Invalid stash reference");
         return nil;
       }
@@ -136,7 +136,7 @@ cleanup:
 - (NSArray*)listStashes:(NSError**)error {
   NSMutableArray* array = [[NSMutableArray alloc] init];
   CALL_LIBGIT2_FUNCTION_RETURN(nil, git_stash_foreach_block, self.private, ^int(size_t index, const char* message, const git_oid* stash_id) {
-    XLOG_DEBUG_CHECK(array.count == index);
+    GC_DEBUG_CHECK(array.count == index);
     GCStash* stash = [self _newStashFromOID:stash_id error:error];
     if (stash == nil) {
       return GIT_ERROR;
@@ -152,7 +152,7 @@ cleanup:
   __block NSUInteger stashIndex = NSNotFound;
   CALL_LIBGIT2_FUNCTION_RETURN(NSNotFound, git_stash_foreach_block, self.private, ^int(size_t index, const char* message, const git_oid* stash_id) {
     if (git_oid_equal(stash_id, oid)) {
-      XLOG_DEBUG_CHECK(stashIndex == NSNotFound);
+      GC_DEBUG_CHECK(stashIndex == NSNotFound);
       stashIndex = index;
     }
     return GIT_OK;

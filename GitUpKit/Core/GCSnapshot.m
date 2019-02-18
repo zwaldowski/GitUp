@@ -69,7 +69,7 @@ static BOOL _CompareSerializedReferences(GCSerializedReference* serializedRefere
     }
 
     default:
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       return NO;
   }
   return YES;
@@ -94,26 +94,26 @@ static BOOL _CompareSerializedReferences(GCSerializedReference* serializedRefere
     switch (_type) {
       case GIT_REF_OID: {
         git_oid_cpy(&_OID, git_reference_target(reference));
-        XLOG_DEBUG_CHECK(!git_oid_iszero(&_OID));
+        GC_DEBUG_CHECK(!git_oid_iszero(&_OID));
         break;
       }
 
       case GIT_REF_SYMBOLIC: {
         _symbol = [_NSDataFromCString(git_reference_symbolic_target(reference)) retain];
-        XLOG_DEBUG_CHECK(_symbol.length);
+        GC_DEBUG_CHECK(_symbol.length);
         break;
       }
 
       default: {
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         [self release];
         return nil;
       }
     }
     if (object) {
-      XLOG_DEBUG_CHECK((_type == GIT_REF_SYMBOLIC) || git_oid_equal(git_object_id(object), &_OID));
+      GC_DEBUG_CHECK((_type == GIT_REF_SYMBOLIC) || git_oid_equal(git_object_id(object), &_OID));
       _resolvedType = git_object_type(object);
-      XLOG_DEBUG_CHECK(_resolvedType != GIT_OBJ_BAD);
+      GC_DEBUG_CHECK(_resolvedType != GIT_OBJ_BAD);
       git_oid_cpy(&_resolvedOID, git_object_id(object));
     } else {
       _resolvedType = GIT_OBJ_BAD;
@@ -141,16 +141,16 @@ static BOOL _CompareSerializedReferences(GCSerializedReference* serializedRefere
 - (id)initWithCoder:(NSCoder*)decoder {
   if ((self = [super init])) {
     _name = [[decoder decodeObjectOfClass:[NSData class] forKey:@"name"] retain];
-    XLOG_DEBUG_CHECK(_name);
+    GC_DEBUG_CHECK(_name);
     _type = [decoder decodeIntForKey:@"type"];
-    XLOG_DEBUG_CHECK((_type == GIT_REF_OID) || (_type == GIT_REF_SYMBOLIC));
+    GC_DEBUG_CHECK((_type == GIT_REF_OID) || (_type == GIT_REF_SYMBOLIC));
 
     NSUInteger length1;
     const uint8_t* bytes1 = [decoder decodeBytesForKey:@"oid" returnedLength:&length1];
     if (bytes1 && (length1 == sizeof(git_oid))) {
       bcopy(bytes1, &_OID, sizeof(git_oid));
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
 
     _symbol = [[decoder decodeObjectOfClass:[NSData class] forKey:@"symbol"] retain];
@@ -162,10 +162,10 @@ static BOOL _CompareSerializedReferences(GCSerializedReference* serializedRefere
     if (bytes2 && (length2 == sizeof(git_oid))) {
       bcopy(bytes2, &_resolvedOID, sizeof(git_oid));
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
 
-    XLOG_DEBUG_CHECK(_symbol || (_type != GIT_REF_SYMBOLIC));
+    GC_DEBUG_CHECK(_symbol || (_type != GIT_REF_SYMBOLIC));
   }
   return self;
 }
@@ -291,7 +291,7 @@ cleanup:
 
                                                      GCSerializedReference* serializedReference = [[GCSerializedReference alloc] initWithReference:reference resolvedObject:object];
                                                      [_serializedReferences addObject:serializedReference];
-                                                     XLOG_DEBUG_CHECK(!CFDictionaryContainsKey(_cache, serializedReference.name));
+                                                     GC_DEBUG_CHECK(!CFDictionaryContainsKey(_cache, serializedReference.name));
                                                      CFDictionarySetValue(_cache, serializedReference.name, serializedReference);
                                                      [serializedReference release];
 
@@ -325,16 +325,16 @@ cleanup:
 - (id)initWithCoder:(NSCoder*)decoder {
   if ((self = [super init])) {
     _config = [[decoder decodeObjectOfClass:[NSMutableDictionary class] forKey:@"config"] retain];
-    XLOG_DEBUG_CHECK(_config);
+    GC_DEBUG_CHECK(_config);
     _serializedReferences = [[decoder decodeObjectOfClass:[NSMutableArray class] forKey:@"serialized_references"] retain];
-    XLOG_DEBUG_CHECK(_serializedReferences);
+    GC_DEBUG_CHECK(_serializedReferences);
     _info = [[decoder decodeObjectOfClass:[NSMutableDictionary class] forKey:@"info"] retain];
-    XLOG_DEBUG_CHECK(_info);
+    GC_DEBUG_CHECK(_info);
 
     CFDictionaryKeyCallBacks callbacks = {0, NULL, NULL, NULL, GCCStringEqualCallBack, GCCStringHashCallBack};
     _cache = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &callbacks, NULL);
     for (GCSerializedReference* serializedReference in _serializedReferences) {
-      XLOG_DEBUG_CHECK(!CFDictionaryContainsKey(_cache, serializedReference.name));
+      GC_DEBUG_CHECK(!CFDictionaryContainsKey(_cache, serializedReference.name));
       CFDictionarySetValue(_cache, serializedReference.name, serializedReference);
     }
   }
@@ -362,7 +362,7 @@ cleanup:
   BOOL empty = YES;
   GCSerializedReference* headReference = CFDictionaryGetValue(_cache, kHEADReferenceFullName);
   if (headReference == nil) {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     empty = NO;
   } else if (CFDictionaryGetCount(_cache) > 1) {
     empty = NO;
@@ -383,14 +383,14 @@ cleanup:
     if (headReference.type == GIT_REF_SYMBOLIC) {
       GCSerializedReference* branchReference = CFDictionaryGetValue(_cache, headReference.symbolicTarget);
       if (branchReference) {
-        XLOG_DEBUG_CHECK(branchReference.type == GIT_REF_OID);
+        GC_DEBUG_CHECK(branchReference.type == GIT_REF_OID);
         return [NSString stringWithUTF8String:branchReference.shortHand];
       }
       return nil;  // Unborn HEAD
     }
     return nil;  // Detached HEAD
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return nil;  // No HEAD
 }
 
@@ -558,7 +558,7 @@ static void _DiffConfigsForLocalBranch(const char* name, NSDictionary* fromConfi
               break;
 
             default:
-              XLOG_DEBUG_UNREACHABLE();
+              GC_DEBUG_UNREACHABLE();
               break;
           }
         }
@@ -591,7 +591,7 @@ static void _DiffConfigsForLocalBranch(const char* name, NSDictionary* fromConfi
           break;
 
         default:
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
           break;
       }
       if ([toSerializedReference isLocalBranch]) {

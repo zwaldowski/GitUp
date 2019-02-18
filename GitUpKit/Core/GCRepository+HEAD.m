@@ -29,7 +29,7 @@
     return YES;
   }
   if (status < 0) {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     LOG_LIBGIT2_ERROR(status);
   }
   return NO;
@@ -103,7 +103,7 @@
   int status = git_repository_head(&headReference, self.private);  // Returns a direct reference or GIT_EUNBORNBRANCH
   if (status != GIT_EUNBORNBRANCH) {
     CHECK_LIBGIT2_FUNCTION_CALL(goto cleanup, status, == GIT_OK);
-    XLOG_DEBUG_CHECK(git_reference_type(headReference) == GIT_REF_OID);
+    GC_DEBUG_CHECK(git_reference_type(headReference) == GIT_REF_OID);
     CALL_LIBGIT2_FUNCTION_GOTO(cleanup, git_commit_lookup, &headCommit, self.private, git_reference_target(headReference));
   } else if (parent) {
     GC_SET_GENERIC_ERROR(@"Secondary parent not allowed for unborn HEAD");
@@ -154,7 +154,7 @@ cleanup:
   NSString* reflogMessage;
 
   CALL_LIBGIT2_FUNCTION_GOTO(cleanup, git_repository_head, &headReference, self.private);  // Returns a direct reference or GIT_EUNBORNBRANCH
-  XLOG_DEBUG_CHECK(git_reference_type(headReference) == GIT_REF_OID);
+  GC_DEBUG_CHECK(git_reference_type(headReference) == GIT_REF_OID);
   CALL_LIBGIT2_FUNCTION_GOTO(cleanup, git_commit_lookup, &headCommit, self.private, git_reference_target(headReference));
 
   index = [self reloadRepositoryIndex:error];
@@ -201,7 +201,7 @@ cleanup:
   int status = git_checkout_tree(self.private, (git_object*)commit.private, &checkoutOptions);
   git_tree_free(tree);
   CHECK_LIBGIT2_FUNCTION_CALL(return NO, status, == GIT_OK);
-  XLOG_VERBOSE(@"Checked out %@ from \"%@\" in %.3f seconds", commit ? commit.shortSHA1 : @"HEAD", self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
+  os_log_debug(OS_LOG_DEFAULT, "Checked out %@ from \"%@\" in %.3f seconds", commit ? commit.shortSHA1 : @"HEAD", self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
   return YES;
 }
 
@@ -317,7 +317,7 @@ cleanup:
   }
   // Otherwise HEAD is detached
   else {
-    XLOG_DEBUG_CHECK(git_reference_type(headReference) == GIT_REF_OID);
+    GC_DEBUG_CHECK(git_reference_type(headReference) == GIT_REF_OID);
     if (commit) {
       *commit = [self loadCommitFromBranchReference:headReference error:error];
       if (*commit == NULL) {

@@ -22,8 +22,6 @@
 
 #import "GCPrivate.h"
 
-#import "XLFunctions.h"
-
 #define kFSLatency 0.5
 #define kUpdateLatency 0.5
 
@@ -109,7 +107,7 @@ static int32_t _allocatedCount = 0;
   } else if (timer == _snapshotsTimer) {
     [self _saveAutomaticSnapshotIfPending];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -123,10 +121,10 @@ static void _TimerCallBack(CFRunLoopTimerRef timer, void* info) {
   for (size_t i = 0; i < numEvents; ++i) {
     const char* path = ((const char**)eventPaths)[i];
     if (eventFlags[i] & kFSEventStreamEventFlagRootChanged) {
-      XLOG_DEBUG_CHECK(stream == _gitDirectoryStream);
+      GC_DEBUG_CHECK(stream == _gitDirectoryStream);
       char buffer[PATH_MAX];
       if (fcntl(_gitDirectory, F_GETPATH, buffer) >= 0) {
-        XLOG_VERBOSE(@"Repository \"%s\" has moved to \"%s\"", git_repository_path(self.private), buffer);
+        os_log_debug(OS_LOG_DEFAULT, "Repository \"%s\" has moved to \"%s\"", git_repository_path(self.private), buffer);
         git_repository* repository;
         int status = git_repository_open(&repository, buffer);
         if (status == GIT_OK) {
@@ -136,30 +134,30 @@ static void _TimerCallBack(CFRunLoopTimerRef timer, void* info) {
           LOG_LIBGIT2_ERROR(status);
         }
       } else {
-        XLOG_DEBUG_UNREACHABLE();
-        XLOG_ERROR(@"Failed retrieving directory path (%s)", strerror(errno));
+        GC_DEBUG_UNREACHABLE();
+        os_log_error(OS_LOG_DEFAULT, "Failed retrieving directory path (%s)", strerror(errno));
       }
 
     } else if (eventFlags[i] & kFSEventStreamEventFlagMustScanSubDirs) {
-      XLOG_WARNING(@"Ignoring event stream request to rescan \"%s\"", path);  // Note that this directory path can be missing the trailing slash
+      os_log(OS_LOG_DEFAULT, "Ignoring event stream request to rescan \"%s\"", path);  // Note that this directory path can be missing the trailing slash
 
     } else {  // Documentation says "eventFlags" should be 0x0 for regular events but that's not the case on OS X 10.10 at least
 
       const char* gitDirectoryPath = git_repository_path(self.private);
       size_t length = strlen(gitDirectoryPath);
-      XLOG_DEBUG_CHECK(gitDirectoryPath[length - 1] == '/');
+      GC_DEBUG_CHECK(gitDirectoryPath[length - 1] == '/');
       if (stream == _gitDirectoryStream) {
         if (!strncmp(path, gitDirectoryPath, length)) {
           const char* subPath = &path[length];
           if (!subPath[0] || !strncmp(subPath, "refs/", 5) || !strncmp(subPath, "logs/", 5)) {  // We only care about ".git/", ".git/refs/*" and ".git/logs/*"
-            XLOG_DEBUG(@"Processed file system event for '%s'", path);
+            os_log_debug(OS_LOG_DEFAULT, "Processed file system event for '%s'", path);
             _gitDirectoryChanged = YES;
             CFRunLoopTimerSetNextFireDate(_updateTimer, CFAbsoluteTimeGetCurrent() + kUpdateLatency);
           } else {
-            XLOG_DEBUG(@"Dropped file system event for '%s'", path);
+            os_log_debug(OS_LOG_DEFAULT, "Dropped file system event for '%s'", path);
           }
         } else {
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
         }
       } else {
         if (strncmp(path, gitDirectoryPath, length)) {  // Make sure change is not inside ".git" directory if itself inside workdir
@@ -169,11 +167,11 @@ static void _TimerCallBack(CFRunLoopTimerRef timer, void* info) {
             LOG_LIBGIT2_ERROR(status);
           }
           if (!ignored) {
-            XLOG_DEBUG(@"Processed file system event for '%s'", path);
+            os_log_debug(OS_LOG_DEFAULT, "Processed file system event for '%s'", path);
             _workingDirectoryChanged = YES;
             CFRunLoopTimerSetNextFireDate(_updateTimer, CFAbsoluteTimeGetCurrent() + kUpdateLatency);
           } else {
-            XLOG_DEBUG(@"Dropped file system event for '%s'", path);
+            os_log_debug(OS_LOG_DEFAULT, "Dropped file system event for '%s'", path);
           }
         }
       }
@@ -204,10 +202,10 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
     if (_workingDirectoryStream) {
       FSEventStreamScheduleWithRunLoop(_workingDirectoryStream, CFRunLoopGetMain(), kCFRunLoopCommonModes);
       if (!FSEventStreamStart(_workingDirectoryStream)) {
-        XLOG_ERROR(@"Failed starting event stream at \"%@\"", path);
+        os_log_error(OS_LOG_DEFAULT, "Failed starting event stream at \"%@\"", path);
       }
     } else {
-      XLOG_ERROR(@"Failed creating event stream at \"%@\"", path);
+      os_log_error(OS_LOG_DEFAULT, "Failed creating event stream at \"%@\"", path);
     }
   }
 }
@@ -225,7 +223,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
     if (_history == nil) {
       return nil;
     }
-    XLOG_VERBOSE(@"History loaded for \"%@\" (%lu commits scanned in %.3f seconds)", self.repositoryPath, _history.allCommits.count, CFAbsoluteTimeGetCurrent() - time);
+    os_log_debug(OS_LOG_DEFAULT, "History loaded for \"%@\" (%lu commits scanned in %.3f seconds)", self.repositoryPath, _history.allCommits.count, CFAbsoluteTimeGetCurrent() - time);
 
     NSString* path = self.repositoryPath;
     _gitDirectory = open(path.fileSystemRepresentation, O_RDONLY);  // Don't use O_EVTONLY as we do want to prevent unmounting the volume that contains the directory
@@ -240,12 +238,12 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
                                               (__bridge CFArrayRef) @[ path ], kFSEventStreamEventIdSinceNow,
                                               kFSLatency, kFSEventStreamCreateFlagWatchRoot | kFSEventStreamCreateFlagIgnoreSelf);  // This opens the path
     if (_gitDirectoryStream == NULL) {
-      XLOG_ERROR(@"Failed creating event stream at \"%@\"", path);
+      os_log_error(OS_LOG_DEFAULT, "Failed creating event stream at \"%@\"", path);
       return nil;
     }
     FSEventStreamScheduleWithRunLoop(_gitDirectoryStream, CFRunLoopGetMain(), kCFRunLoopCommonModes);
     if (!FSEventStreamStart(_gitDirectoryStream)) {
-      XLOG_ERROR(@"Failed starting event stream at \"%@\"", path);
+      os_log_error(OS_LOG_DEFAULT, "Failed starting event stream at \"%@\"", path);
       return nil;
     }
 
@@ -360,7 +358,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
     case kGCLiveRepositoryDiffWhitespaceMode_IgnoreAll:
       return kGCDiffOption_IgnoreAllSpaces;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return 0;
 }
 
@@ -398,7 +396,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
 }
 
 - (void)resumeHistoryUpdates {
-  XLOG_DEBUG_CHECK(_historyUpdatesSuspended > 0);
+  GC_DEBUG_CHECK(_historyUpdatesSuspended > 0);
   _historyUpdatesSuspended -= 1;
   if (_historyUpdatesSuspended == 0) {
     if (_historyUpdatePending) {
@@ -414,7 +412,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
   CFAbsoluteTime time = CFAbsoluteTimeGetCurrent();
   if ([self reloadHistory:_history referencesDidChange:&referencesDidChange addedCommits:NULL removedCommits:NULL error:&error]) {
     if (referencesDidChange) {
-      XLOG_VERBOSE(@"History updated for \"%@\" (%lu commits scanned in %.3f seconds)", self.repositoryPath, _history.allCommits.count, CFAbsoluteTimeGetCurrent() - time);
+      os_log_debug(OS_LOG_DEFAULT, "History updated for \"%@\" (%lu commits scanned in %.3f seconds)", self.repositoryPath, _history.allCommits.count, CFAbsoluteTimeGetCurrent() - time);
 
       if (_snapshotsTimer) {
         CFRunLoopTimerSetNextFireDate(_snapshotsTimer, CFAbsoluteTimeGetCurrent() + kAutomaticSnapshotDelay);
@@ -439,7 +437,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
 
 - (void)_updateDatabaseInBackgroundWithProgressHandler:(GCCommitDatabaseProgressHandler)handler
                                             completion:(void (^)(BOOL success, NSError* error))completion {
-  XLOG_DEBUG_CHECK(!_updatingDatabase);
+  GC_DEBUG_CHECK(!_updatingDatabase);
   NSString* path = [self.privateAppDirectoryPath stringByAppendingPathComponent:kCommitDatabaseFileName];
   _updatingDatabase = YES;
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
@@ -453,7 +451,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
     BOOL success = [database updateWithProgressHandler:handler error:&error];
     database = nil;  // Release and close immediately
     dispatch_async(dispatch_get_main_queue(), ^{
-      XLOG_DEBUG_CHECK(_updatingDatabase);
+      GC_DEBUG_CHECK(_updatingDatabase);
       _updatingDatabase = NO;
       completion(success, error);
     });
@@ -461,7 +459,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
 }
 
 - (void)_updateSearch {
-  XLOG_DEBUG_CHECK(_database);
+  GC_DEBUG_CHECK(_database);
   if (_updatingDatabase) {
     _databaseUpdatePending = YES;
   } else {
@@ -500,7 +498,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
         success = YES;
       }
       if (!success) {
-        XLOG_ERROR(@"Failed archiving snapshots: %s", strerror(errno));
+        os_log_error(OS_LOG_DEFAULT, "Failed archiving snapshots: %s", strerror(errno));
       }
     }
   }
@@ -538,7 +536,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
   if (_snapshots.count > kMaxSnapshots) {
     [_snapshots removeObjectsInRange:NSMakeRange(kMaxSnapshots, _snapshots.count - kMaxSnapshots)];
   }
-  XLOG_VERBOSE(@"Saved snapshot with reason '%@' for \"%@\"", reason, self.repositoryPath);
+  os_log_debug(OS_LOG_DEFAULT, "Saved snapshot with reason '%@' for \"%@\"", reason, self.repositoryPath);
   if ([self.delegate respondsToSelector:@selector(repositoryDidUpdateSnapshots:)]) {
     [self.delegate repositoryDidUpdateSnapshots:self];
   }
@@ -596,7 +594,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
 
 - (void)setAutomaticSnapshotsEnabled:(BOOL)flag {
   if (flag && !_snapshotsTimer) {
-    XLOG_DEBUG_CHECK(_snapshotPending == NO);
+    GC_DEBUG_CHECK(_snapshotPending == NO);
     CFRunLoopTimerContext context = {0, (__bridge void*)self, NULL, NULL, NULL};
     _snapshotsTimer = CFRunLoopTimerCreate(kCFAllocatorDefault, HUGE_VALF, HUGE_VALF, 0, 0, _TimerCallBack, &context);
     CFRunLoopAddTimer(CFRunLoopGetMain(), _snapshotsTimer, kCFRunLoopCommonModes);
@@ -605,7 +603,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
     [self _saveAutomaticSnapshotIfPending];
 
     if (_lastSnapshot && ![_snapshots.firstObject isEqualToSnapshot:_lastSnapshot usingOptions:(kGCSnapshotOption_IncludeHEAD | kGCSnapshotOption_IncludeLocalBranches | kGCSnapshotOption_IncludeTags)]) {
-      XLOG_DEBUG_CHECK(_undoActionName);
+      GC_DEBUG_CHECK(_undoActionName);
       [_undoManager setActionName:_undoActionName];
       [[_undoManager prepareWithInvocationTarget:self] _undoOperationWithReason:@"automatic" beforeSnapshot:_lastSnapshot afterSnapshot:_snapshots.firstObject checkoutIfNeeded:YES ignore:NO];
       _undoActionName = nil;
@@ -656,7 +654,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
       success = NO;
     }
   } else {
-    XLOG_DEBUG_CHECK(_statusMode == kGCLiveRepositoryStatusMode_Normal);
+    GC_DEBUG_CHECK(_statusMode == kGCLiveRepositoryStatusMode_Normal);
     indexDiff = [self diffRepositoryIndexWithHEAD:nil
                                           options:(self.diffBaseOptions | kGCDiffOption_FindRenames)
                                 maxInterHunkLines:_diffMaxInterHunkLines
@@ -682,7 +680,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
 
   if (success) {
     if (((_statusMode == kGCLiveRepositoryStatusMode_Unified) && ![_unifiedStatus isEqualToDiff:unifiedDiff]) || ((_statusMode != kGCLiveRepositoryStatusMode_Unified) && (![_indexStatus isEqualToDiff:indexDiff] || ![_workingDirectoryStatus isEqualToDiff:workdirDiff])) || ![_indexConflicts isEqualToDictionary:conflicts]) {
-      XLOG_VERBOSE(@"Status updated for \"%@\" in %.3f seconds", self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
+      os_log_debug(OS_LOG_DEFAULT, "Status updated for \"%@\" in %.3f seconds", self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
       _unifiedStatus = unifiedDiff;
       _indexStatus = indexDiff;
       _indexConflicts = conflicts;
@@ -695,7 +693,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
         [[NSNotificationCenter defaultCenter] postNotificationName:GCLiveRepositoryStatusDidUpdateNotification object:self];
       }
     } else {
-      XLOG_VERBOSE(@"Status checked for \"%@\" in %.3f seconds", self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
+      os_log_debug(OS_LOG_DEFAULT, "Status checked for \"%@\" in %.3f seconds", self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
     }
   } else {
     _unifiedStatus = nil;
@@ -725,7 +723,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
   NSArray* stashes = [self listStashes:&error];
   if (stashes) {
     if (![_stashes isEqualToArray:stashes]) {
-      XLOG_VERBOSE(@"Stashes updated for \"%@\"", self.repositoryPath);
+      os_log_debug(OS_LOG_DEFAULT, "Stashes updated for \"%@\"", self.repositoryPath);
       _stashes = stashes;
 
       if (notify) {
@@ -807,7 +805,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
     kill(getpid(), SIGSTOP);  // Break into debugger - only works on main thread
   }
 #endif
-  XLOG_DEBUG_CHECK(_undoActionName);
+  GC_DEBUG_CHECK(_undoActionName);
   [_undoManager setActionName:_undoActionName];
   [[_undoManager prepareWithInvocationTarget:self] _undoOperationWithReason:reason beforeSnapshot:beforeSnapshot afterSnapshot:afterSnapshot checkoutIfNeeded:checkoutIfNeeded ignore:NO];
   _undoActionName = nil;
@@ -818,13 +816,13 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
                 skipCheckoutOnUndo:(BOOL)skipCheckout
                              error:(NSError**)error
                         usingBlock:(BOOL (^)(GCLiveRepository* repository, NSError** outError))block {
-  XLOG_DEBUG_CHECK(!_hasBackgroundOperationInProgress);
+  GC_DEBUG_CHECK(!_hasBackgroundOperationInProgress);
   BOOL success = NO;
   GCSnapshot* beforeSnapshot = reason ? [self takeSnapshot:error] : nil;
   if (!reason || beforeSnapshot) {
     CFAbsoluteTime time = CFAbsoluteTimeGetCurrent();
     if (block(self, error)) {
-      XLOG_VERBOSE(@"Performed operation '%@' in \"%@\" in %.3f seconds", reason, self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
+      os_log_debug(OS_LOG_DEFAULT, "Performed operation '%@' in \"%@\" in %.3f seconds", reason, self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
       GCSnapshot* afterSnapshot = reason ? [self takeSnapshot:error] : nil;
       if (!reason || afterSnapshot) {
         if (reason) {
@@ -843,7 +841,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
                                       argument:(id<NSCoding>)argument
                            usingOperationBlock:(BOOL (^)(GCRepository* repository, NSError** outError))operationBlock
                                completionBlock:(void (^)(BOOL success, NSError* error))completionBlock {
-  XLOG_DEBUG_CHECK(!_hasBackgroundOperationInProgress);
+  GC_DEBUG_CHECK(!_hasBackgroundOperationInProgress);
   __block NSError* error = nil;
   GCSnapshot* beforeSnapshot = reason ? [self takeSnapshot:&error] : nil;
   if (!reason || beforeSnapshot) {
@@ -976,7 +974,7 @@ static void _StreamCallback(ConstFSEventStreamRef streamRef, void* clientCallBac
                                                 completion(success, error);
                                               }];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -986,7 +984,7 @@ static BOOL _MatchReference(NSString* match, NSString* name) {
 }
 
 - (NSArray*)findCommitsMatching:(NSString*)match {
-  XLOG_DEBUG_CHECK(_database);
+  GC_DEBUG_CHECK(_database);
   NSMutableArray* results = [[NSMutableArray alloc] init];
 
   match = [match stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
@@ -1010,7 +1008,7 @@ static BOOL _MatchReference(NSString* match, NSString* name) {
           if (historyCommit) {
             [results addObject:historyCommit];
           } else {
-            XLOG_DEBUG_UNREACHABLE();
+            GC_DEBUG_UNREACHABLE();
           }
         }
       }
@@ -1022,7 +1020,7 @@ static BOOL _MatchReference(NSString* match, NSString* name) {
         if (branch.tipCommit) {
           [results addObject:branch];
         } else {
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
         }
       }
     }
@@ -1031,7 +1029,7 @@ static BOOL _MatchReference(NSString* match, NSString* name) {
         if (branch.tipCommit) {
           [results addObject:branch];
         } else {
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
         }
       }
     }
@@ -1040,7 +1038,7 @@ static BOOL _MatchReference(NSString* match, NSString* name) {
         if (tag.commit) {
           [results addObject:tag];
         } else {
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
         }
       }
     }

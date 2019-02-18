@@ -22,7 +22,6 @@
 #import "GCRepository+Utilities.h"
 #import "GCRepository+Index.h"
 
-#import "XLFacilityMacros.h"
 
 #define kUserInfoFileName @"info.plist"
 
@@ -39,7 +38,7 @@ NSString* GCNameFromHostingService(GCHostingService service) {
     case kGCHostingService_BitBucket:
       return @"BitBucket";
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return nil;
 }
 
@@ -216,7 +215,7 @@ NSString* GCNameFromHostingService(GCHostingService service) {
       }
 
       default:
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         break;
     }
   }
@@ -275,7 +274,7 @@ NSString* GCNameFromHostingService(GCHostingService service) {
         break;
 
       default:
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         break;
     }
   }
@@ -307,7 +306,7 @@ NSString* GCNameFromHostingService(GCHostingService service) {
 - (NSURL*)_projectHostingURLForRemote:(GCRemote*)remote service:(GCHostingService*)service error:(NSError**)error {
   NSString* value = GCGitURLFromURL(remote.URL);
   if (value == nil) {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     GC_SET_GENERIC_ERROR(@"Invalid remote URL");
     return nil;
   }
@@ -391,7 +390,7 @@ NSString* GCNameFromHostingService(GCHostingService service) {
       break;
 
     case kGCHostingService_Unknown:
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       break;
   }
   if (service) {
@@ -427,7 +426,7 @@ NSString* GCNameFromHostingService(GCHostingService service) {
       break;
 
     case kGCHostingService_Unknown:
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       break;
   }
   if (service) {
@@ -495,7 +494,7 @@ NSString* GCNameFromHostingService(GCHostingService service) {
       break;
 
     case kGCHostingService_Unknown:
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       break;
   }
   if (service) {
@@ -523,7 +522,7 @@ NSString* GCNameFromHostingService(GCHostingService service) {
         if (plist) {
           [dictionary addEntriesFromDictionary:plist];
         } else {
-          XLOG_ERROR(@"Failed reading user info for repository \"%@\": %@", self.repositoryPath, error);
+          os_log_error(OS_LOG_DEFAULT, "Failed reading user info for repository \"%@\": %@", self.repositoryPath, error);
         }
       }
     }
@@ -538,7 +537,7 @@ NSString* GCNameFromHostingService(GCHostingService service) {
     NSError* error;
     NSData* data = [NSPropertyListSerialization dataWithPropertyList:dictionary format:NSPropertyListXMLFormat_v1_0 options:0 error:&error];
     if (![data writeToFile:path options:NSDataWritingAtomic error:&error]) {
-      XLOG_ERROR(@"Failed writing user info for repository \"%@\": %@", self.repositoryPath, error);
+      os_log_error(OS_LOG_DEFAULT, "Failed writing user info for repository \"%@\": %@", self.repositoryPath, error);
     }
   }
 }

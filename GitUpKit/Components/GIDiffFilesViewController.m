@@ -20,7 +20,6 @@
 #import "GIDiffFilesViewController.h"
 
 #import "GIInterface.h"
-#import "XLFacilityMacros.h"
 
 #define kPasteboardType @"GIDiffDelta"  // Raw unretained pointer which is OK since pasteboard is use within process only
 
@@ -328,7 +327,7 @@ static NSImage* _untrackedImage = nil;
 
       default:
         view.imageView.image = nil;
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         break;
     }
   }

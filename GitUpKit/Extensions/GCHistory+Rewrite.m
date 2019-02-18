@@ -19,7 +19,6 @@
 
 #import "GCHistory+Rewrite.h"
 
-#import "XLFacilityMacros.h"
 
 typedef NS_ENUM(NSUInteger, ReplayMode) {
   kReplayMode_CopyTrees = 0,
@@ -219,7 +218,7 @@ typedef NS_ENUM(NSUInteger, ReplayMode) {
                           [self _updateTransform:transform forNewCommit:newCommit withBaseCommit:commit];
                           CFDictionarySetValue(mapping, (__bridge const void*)commit, (__bridge const void*)newCommit);
                         } else {
-                          XLOG_DEBUG(@"Skipping replay of commit \"%@\" (%@) not on local branch", commit.summary, commit.shortSHA1);
+                          os_log_debug(OS_LOG_DEFAULT, "Skipping replay of commit \"%@\" (%@) not on local branch", commit.summary, commit.shortSHA1);
                         }
                       }];
   CFRelease(mapping);

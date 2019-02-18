@@ -67,8 +67,8 @@
 #if DEBUG
 
 - (void)updateReference:(git_reference*)reference {
-  XLOG_DEBUG_CHECK(git_reference_is_tag(reference));
-  XLOG_DEBUG_CHECK(git_reference_type(reference) == GIT_REF_OID);
+  GC_DEBUG_CHECK(git_reference_is_tag(reference));
+  GC_DEBUG_CHECK(git_reference_type(reference) == GIT_REF_OID);
   [super updateReference:reference];
 }
 
@@ -141,7 +141,7 @@
       object = NULL;
     }
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     GC_SET_GENERIC_ERROR(@"Unexpected reference target");
   }
 

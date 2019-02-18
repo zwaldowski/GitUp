@@ -103,7 +103,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
   if (index != kCFNotFound) {
     CFArrayRemoveValueAtIndex(_parents, index);
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -116,7 +116,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
   if (index != kCFNotFound) {
     CFArrayRemoveValueAtIndex(_children, index);
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -279,7 +279,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
 - (GCHistoryCommit*)historyCommitWithSHA1:(NSString*)sha1 {
   git_oid oid;
   if (!GCGitOIDFromSHA1(sha1, &oid, NULL)) {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     return nil;
   }
   return [self historyCommitForOID:&oid];
@@ -362,7 +362,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
     free(states);
     return counter;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return 0;
 }
 
@@ -421,12 +421,12 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
 
 - (BOOL)iterateWithCommitBlock:(void (^)(GCHistoryCommit* commit, BOOL* stop))block {
   if (_done) {
-    XLOG_DEBUG_UNREACHABLE();  // We were already done iterating before!
+    GC_DEBUG_UNREACHABLE();  // We were already done iterating before!
     return NO;
   }
 
   if (_history.nextGeneration != _nextGeneration) {
-    XLOG_DEBUG_UNREACHABLE();  // The history has changed from under us!
+    GC_DEBUG_UNREACHABLE();  // The history has changed from under us!
     return NO;
   }
 
@@ -447,7 +447,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
     [_commits release];
     _commits = nil;
     if (GC_POINTER_LIST_COUNT(previousRow) == 0) {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       _done = YES;
       return NO;
     }
@@ -461,7 +461,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
     __block BOOL success = NO;
     BOOL (^commitBlock)
     (GCHistoryCommit*) = ^(GCHistoryCommit* commit) {
-      XLOG_DEBUG_CHECK(!COMMIT_IS_PROCESSED(commit));
+      GC_DEBUG_CHECK(!COMMIT_IS_PROCESSED(commit));
       BOOL ready = YES;
 
       // Check if this commit is "ready" i.e. all its children (respectively parents) have been processed (but not on the current iteration)
@@ -500,7 +500,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
           for (CFIndex i = 0, iMax = CFArrayGetCount(relations); i < iMax; ++i) {
             GCHistoryCommit* relation = CFArrayGetValueAtIndex(relations, i);
             if (!COMMIT_WAS_JUST_PROCESSED(relation) && !COMMIT_WAS_JUST_SKIPPED(relation)) {
-              XLOG_DEBUG_CHECK(!GC_POINTER_LIST_CONTAINS(row, relation));
+              GC_DEBUG_CHECK(!GC_POINTER_LIST_CONTAINS(row, relation));
               if (!commitBlock(relation)) {
                 _done = YES;
                 return NO;
@@ -512,7 +512,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
       // Otherwise, commit was skipped, attempt to reprocess it
       else {
         if (!COMMIT_WAS_JUST_SKIPPED(previousCommit)) {
-          XLOG_DEBUG_CHECK(!GC_POINTER_LIST_CONTAINS(row, previousCommit));
+          GC_DEBUG_CHECK(!GC_POINTER_LIST_CONTAINS(row, previousCommit));
           if (!commitBlock(previousCommit)) {
             _done = YES;
             return NO;
@@ -530,8 +530,8 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
     // If row only contains only skipped commits (this can only happen when not walking the entire history),
     // break the deadlock by force processing the newest (respectively oldest) skipped commit
     if (!success) {
-      XLOG_DEBUG_CHECK(!_entireHistory);
-      XLOG_DEBUG_CHECK(sizeof(git_time_t) == sizeof(int64_t));
+      GC_DEBUG_CHECK(!_entireHistory);
+      GC_DEBUG_CHECK(sizeof(git_time_t) == sizeof(int64_t));
 
       // Find newest (respectively oldest) skipped commit(s)
       git_time_t boundaryTime = _followParents ? LONG_LONG_MIN : LONG_LONG_MAX;
@@ -569,7 +569,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
 
         // Bail if we still have more than a single candidate since it's not possible to guarantee the following commits won't be processed out-of-order
         if (GC_POINTER_LIST_COUNT(candidates) != 1) {
-          XLOG_ERROR(@"Unable to continue walking history in \"%@\" due to unsolvable deadlock", _history.repository.repositoryPath);
+          os_log_error(OS_LOG_DEFAULT, "Unable to continue walking history in \"%@\" due to unsolvable deadlock", _history.repository.repositoryPath);
           _done = YES;
           return NO;
         }
@@ -654,7 +654,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
   GC_POINTER_LIST_APPEND(childrenCommits, NULL);
   while (1) {
     size_t count = GC_POINTER_LIST_COUNT(parentsCommits);
-    XLOG_DEBUG_CHECK(GC_POINTER_LIST_COUNT(childrenCommits) == count);
+    GC_DEBUG_CHECK(GC_POINTER_LIST_COUNT(childrenCommits) == count);
     if (count == 0) {
       break;
     }
@@ -688,7 +688,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
            addedCommits:(NSArray**)outAddedCommits
          removedCommits:(NSArray**)outRemovedCommits
                   error:(NSError**)error {
-  XLOG_DEBUG_CHECK([NSThread isMainThread]);  // This could work from any thread but it really shouldn't happen in practice
+  GC_DEBUG_CHECK([NSThread isMainThread]);  // This could work from any thread but it really shouldn't happen in practice
   BOOL success = NO;
   NSUInteger nextAutoIncrementID = history.nextAutoIncrementID;
   NSUInteger generation = history.nextGeneration;
@@ -799,7 +799,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
               git_object_free(object);
             }
           } else {
-            XLOG_DEBUG_UNREACHABLE();
+            GC_DEBUG_UNREACHABLE();
             git_object_free(object);
           }
         }
@@ -818,7 +818,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
           referenceObject = [[GCHistoryLocalBranch alloc] initWithRepository:self reference:reference];
           [localBranches addObject:referenceObject];
           if (headReference && ([referenceObject compareWithReference:headReference] == NSOrderedSame)) {
-            XLOG_DEBUG_CHECK(headBranch == nil);
+            GC_DEBUG_CHECK(headBranch == nil);
             headBranch = (GCHistoryLocalBranch*)referenceObject;
           }
           NSString* remoteName = [config objectForKey:[NSString stringWithFormat:@"branch.%s.remote", git_reference_shorthand(reference)]];
@@ -833,7 +833,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
           referenceObject = [[GCHistoryRemoteBranch alloc] initWithRepository:self reference:reference];
           [remoteBranches addObject:referenceObject];
         } else {
-          XLOG_VERBOSE(@"Ignoring reference \"%s\" for history of \"%@\"", git_reference_name(reference), self.repositoryPath);
+          os_log_debug(OS_LOG_DEFAULT, "Ignoring reference \"%s\" for history of \"%@\"", git_reference_name(reference), self.repositoryPath);
         }
         if (referenceObject) {
           [tips addObject:referenceCommit];
@@ -855,7 +855,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
         }
         [referenceCommit release];
       } else {
-        XLOG_WARNING(@"Dangling direct reference \"%s\" without commit in \"%@\"", git_reference_name(reference), self.repositoryPath);
+        os_log(OS_LOG_DEFAULT, "Dangling direct reference \"%s\" without commit in \"%@\"", git_reference_name(reference), self.repositoryPath);
       }
     }
     if (referenceObject) {
@@ -881,7 +881,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
           break;
 
         default:
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
           goto cleanup;
       }
       if (!enumerateBlock(reference)) {
@@ -983,7 +983,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
     // Update generation for all commits reachable from new tips
     for (GCCommit* tip in tips) {
       GCHistoryCommit* tipCommit = (GCHistoryCommit*)CFDictionaryGetValue(lookup, git_commit_id(tip.private));
-      XLOG_DEBUG_CHECK(tipCommit);
+      GC_DEBUG_CHECK(tipCommit);
       [self _walkAncestorsFromCommit:tipCommit
                           usingBlock:^BOOL(GCHistoryCommit* commit, GCHistoryCommit* previousCommit) {
                             if (commit->generation == generation) {
@@ -1016,9 +1016,9 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
                                 [removedCommits addObject:commit];
                                 CFDictionaryRemoveValue(lookup, git_commit_id(commit.private));
                                 [commits removeObjectAtIndex:index];  // Should be a bit faster than calling -removeObjectIdenticalTo: since it will stop on the first (and unique) match
-                                XLOG_DEBUG_CHECK(![commits containsObject:commit]);
+                                GC_DEBUG_CHECK(![commits containsObject:commit]);
                               } else {
-                                XLOG_DEBUG_UNREACHABLE();
+                                GC_DEBUG_UNREACHABLE();
                               }
                             }
                             return YES;
@@ -1030,7 +1030,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
   if (history.sorting == kGCHistorySorting_ReverseChronological) {
     [commits sortUsingSelector:@selector(reverseTimeCompare:)];  // Newest first
   } else {
-    XLOG_DEBUG_CHECK(history.sorting == kGCHistorySorting_None);
+    GC_DEBUG_CHECK(history.sorting == kGCHistorySorting_None);
   }
 
   // Update roots and leaves
@@ -1043,7 +1043,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
       [roots addObject:commit];
     }
     if (commit.leaf) {
-      XLOG_DEBUG_CHECK([tips containsObject:commit]);
+      GC_DEBUG_CHECK([tips containsObject:commit]);
       [leaves addObject:commit];
     }
   }
@@ -1060,7 +1060,7 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
       [commit addTag:tag];
       objc_setAssociatedObject(tag, _associatedObjectAnnotationKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     } else {
-      XLOG_WARNING(@"Missing commit for tag \"%@\" in \"%@\"", tag.name, self.repositoryPath);
+      os_log(OS_LOG_DEFAULT, "Missing commit for tag \"%@\" in \"%@\"", tag.name, self.repositoryPath);
       [tags removeObjectAtIndex:i];
       --i;
       --count;
@@ -1070,14 +1070,14 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
   for (NSUInteger i = 0, count = localBranches.count; i < count; ++i) {
     GCHistoryLocalBranch* branch = localBranches[i];
     GCCommit* referenceCommit = objc_getAssociatedObject(branch, _associatedObjectCommitKey);
-    XLOG_DEBUG_CHECK(!objc_getAssociatedObject(branch, _associatedObjectAnnotationKey));
+    GC_DEBUG_CHECK(!objc_getAssociatedObject(branch, _associatedObjectAnnotationKey));
     GCHistoryCommit* commit = CFDictionaryGetValue(lookup, git_commit_id(referenceCommit.private));
     objc_setAssociatedObject(branch, _associatedObjectCommitKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if (commit) {
       branch.tipCommit = commit;
       [commit addLocalBranch:branch];
     } else {
-      XLOG_WARNING(@"Missing commit for branch \"%@\" in \"%@\"", branch.name, self.repositoryPath);
+      os_log(OS_LOG_DEFAULT, "Missing commit for branch \"%@\" in \"%@\"", branch.name, self.repositoryPath);
       if (branch == headBranch) {
         headBranch = nil;
       }
@@ -1090,14 +1090,14 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
   for (NSUInteger i = 0, count = remoteBranches.count; i < count; ++i) {
     GCHistoryRemoteBranch* branch = remoteBranches[i];
     GCCommit* referenceCommit = objc_getAssociatedObject(branch, _associatedObjectCommitKey);
-    XLOG_DEBUG_CHECK(!objc_getAssociatedObject(branch, _associatedObjectAnnotationKey));
+    GC_DEBUG_CHECK(!objc_getAssociatedObject(branch, _associatedObjectAnnotationKey));
     GCHistoryCommit* commit = CFDictionaryGetValue(lookup, git_commit_id(referenceCommit.private));
     objc_setAssociatedObject(branch, _associatedObjectCommitKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if (commit) {
       branch.tipCommit = commit;
       [commit addRemoteBranch:branch];
     } else {
-      XLOG_WARNING(@"Missing commit for branch \"%@\" in \"%@\"", branch.name, self.repositoryPath);
+      os_log(OS_LOG_DEFAULT, "Missing commit for branch \"%@\" in \"%@\"", branch.name, self.repositoryPath);
       [remoteBranches removeObjectAtIndex:i];
       --i;
       --count;
@@ -1135,13 +1135,13 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
   if (headTip) {
     history.HEADCommit = (GCHistoryCommit*)CFDictionaryGetValue(lookup, git_commit_id(headTip.private));
     if (history.HEADCommit == nil) {
-      XLOG_WARNING(@"Missing commit for HEAD in \"%@\"", self.repositoryPath);
+      os_log(OS_LOG_DEFAULT, "Missing commit for HEAD in \"%@\"", self.repositoryPath);
     }
   } else {
     history.HEADCommit = nil;
   }
   history.HEADBranch = headBranch;
-  XLOG_DEBUG_CHECK(!headReference || !history.HEADCommit || history.HEADBranch);
+  GC_DEBUG_CHECK(!headReference || !history.HEADCommit || history.HEADBranch);
   history.md5 = md5;
 
   // We're done!
@@ -1159,23 +1159,23 @@ static const void* _associatedObjectUpstreamNameKey = &_associatedObjectUpstream
 
 #if DEBUG
   // Check history consistency
-  XLOG_DEBUG_CHECK((NSUInteger)CFDictionaryGetCount(lookup) == commits.count);
+  GC_DEBUG_CHECK((NSUInteger)CFDictionaryGetCount(lookup) == commits.count);
   for (GCHistoryCommit* commit in commits) {
-    XLOG_DEBUG_CHECK(CFDictionaryContainsKey(lookup, git_commit_id(commit.private)));
+    GC_DEBUG_CHECK(CFDictionaryContainsKey(lookup, git_commit_id(commit.private)));
     for (GCHistoryCommit* parent in commit.parents) {
-      XLOG_DEBUG_CHECK(CFDictionaryContainsKey(lookup, git_commit_id(parent.private)));
+      GC_DEBUG_CHECK(CFDictionaryContainsKey(lookup, git_commit_id(parent.private)));
     }
     for (GCHistoryCommit* child in commit.children) {
-      XLOG_DEBUG_CHECK(CFDictionaryContainsKey(lookup, git_commit_id(child.private)));
+      GC_DEBUG_CHECK(CFDictionaryContainsKey(lookup, git_commit_id(child.private)));
     }
     for (GCHistoryLocalBranch* branch in commit.localBranches) {
-      XLOG_DEBUG_CHECK(branch.tipCommit == commit);
+      GC_DEBUG_CHECK(branch.tipCommit == commit);
     }
     for (GCHistoryRemoteBranch* branch in commit.remoteBranches) {
-      XLOG_DEBUG_CHECK(branch.tipCommit == commit);
+      GC_DEBUG_CHECK(branch.tipCommit == commit);
     }
     for (GCHistoryTag* tag in commit.tags) {
-      XLOG_DEBUG_CHECK(tag.commit == commit);
+      GC_DEBUG_CHECK(tag.commit == commit);
     }
   }
 #endif
@@ -1259,7 +1259,7 @@ cleanup:
                         } else if (delta->status == GIT_DELTA_ADDED) {
                           status = GIT_ITEROVER;
                         } else {
-                          XLOG_DEBUG_CHECK(delta->status == GIT_DELTA_MODIFIED);
+                          GC_DEBUG_CHECK(delta->status == GIT_DELTA_MODIFIED);
                         }
                       }
                     }

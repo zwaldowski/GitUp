@@ -23,7 +23,6 @@
 #import "GIInterface.h"
 #import "GCRepository+Utilities.h"
 #import "GCHistory+Rewrite.h"
-#import "XLFacilityMacros.h"
 
 #define kPersistentViewStateKeyNamespace @"GIMapViewController_"
 
@@ -154,7 +153,7 @@ static NSColor* _patternColor = nil;
     _graphView.graph = [[GIGraph alloc] initWithHistory:self.repository.history options:options];
     [_delegate mapViewControllerDidReloadGraph:self];
   }
-  XLOG_VERBOSE(@"Graph regenerated for \"%@\" in %.3f seconds", self.repository.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
+  os_log_debug(OS_LOG_DEFAULT, "Graph regenerated for \"%@\" in %.3f seconds", self.repository.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
 
   if (selectedCommit) {
     if (_previewHistory) {
@@ -209,7 +208,7 @@ static NSColor* _patternColor = nil;
 
 - (NSPoint)positionInViewForCommit:(GCCommit*)commit {
   GINode* node = [self nodeForCommit:commit];
-  XLOG_DEBUG_CHECK(node);
+  GC_DEBUG_CHECK(node);
   return node ? [self.view convertPoint:[_graphView positionForNode:node] fromView:_graphView] : NSZeroPoint;
 }
 
@@ -473,7 +472,7 @@ static NSColor* _patternColor = nil;
         }
         switch (service) {
           case kGCHostingService_Unknown:
-            XLOG_DEBUG_UNREACHABLE();
+            GC_DEBUG_UNREACHABLE();
             break;
 
           case kGCHostingService_GitLab:
@@ -559,7 +558,7 @@ static NSColor* _patternColor = nil;
             handled = YES;
             break;
           } else {
-            XLOG_DEBUG_UNREACHABLE();
+            GC_DEBUG_UNREACHABLE();
           }
         }
       }
@@ -646,7 +645,7 @@ static NSColor* _patternColor = nil;
 
   GCHistoryCommit* commit = _graphView.selectedCommit;
   if (commit == nil) {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     return NO;
   }
 
@@ -833,7 +832,7 @@ static NSColor* _patternColor = nil;
           break;
 
         case kGCCommitRelation_Identical:  // Selected and HEAD commits are the same
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
           break;
 
         case kGCCommitRelation_Ancestor:  // Selected commit is an ancestor of HEAD commit

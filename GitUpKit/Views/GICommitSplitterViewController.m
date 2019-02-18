@@ -25,7 +25,6 @@
 #import "GIInterface.h"
 #import "GCHistory+Rewrite.h"
 #import "GIWindowController.h"
-#import "XLFacilityMacros.h"
 
 #define kGCDefaultMaxDiffContextLines 3
 
@@ -84,7 +83,7 @@
 }
 
 - (void)viewWillShow {
-  XLOG_DEBUG_CHECK(_commit);
+  GC_DEBUG_CHECK(_commit);
   [super viewWillShow];
 
   _titleTextField.stringValue = [NSString stringWithFormat:@"\"%@\" <%@>", _commit.summary, _commit.shortSHA1];
@@ -334,7 +333,7 @@
                                                                          withUpdatedCommit:newCommit
                                                                                  copyTrees:YES
                                                                            conflictHandler:^GCCommit*(GCIndex* index, GCCommit* ourCommit, GCCommit* theirCommit, NSArray* parentCommits, NSString* message3, NSError** outError2) {
-                                                                             XLOG_DEBUG_UNREACHABLE();  // Splitting a commit should not generate index conflicts when replaying descendants
+                                                                             GC_DEBUG_UNREACHABLE();  // Splitting a commit should not generate index conflicts when replaying descendants
                                                                              return [self resolveConflictsWithResolver:self.delegate index:index ourCommit:ourCommit theirCommit:theirCommit parentCommits:parentCommits message:message3 error:outError2];
                                                                            }
                                                                                      error:outError1];
@@ -366,7 +365,7 @@ cleanup:
       [_diffContentsViewController setDeltas:_filesViewControllerOld.selectedDeltas usingConflicts:nil];
       _newActive = NO;
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
   }
 }
@@ -377,7 +376,7 @@ cleanup:
   } else if (controller == _filesViewControllerOld) {
     [self _copyFilesFromIndexOldToIndexNew:_filesViewControllerOld.selectedDeltas];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -404,7 +403,7 @@ cleanup:
   } else if (controller == _filesViewControllerOld) {
     [self _copyFilesFromIndexOldToIndexNew:deltas];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -420,7 +419,7 @@ cleanup:
     [self _copyFilesFromIndexNewToIndexOld:deltas];
     return YES;
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
   return NO;
 }
@@ -494,7 +493,7 @@ cleanup:
 }
 
 - (NSMenu*)diffContentsViewController:(GIDiffContentsViewController*)controller willShowContextualMenuForDelta:(GCDiffDelta*)delta conflict:(GCIndexConflict*)conflict {
-  XLOG_DEBUG_CHECK(conflict == nil);
+  GC_DEBUG_CHECK(conflict == nil);
   return [self contextualMenuForDelta:delta withConflict:nil allowOpen:NO];
 }
 

@@ -24,7 +24,6 @@
 #import "GCRepository+Index.h"
 #import "GCRepository+Utilities.h"
 #import "GIAppKit.h"
-#import "XLFacilityMacros.h"
 
 #define kOpenDiffPath @"/usr/bin/opendiff"
 #define kKSDiffPath @"/usr/local/bin/ksdiff"
@@ -55,7 +54,7 @@ static NSString* _diffTemporaryDirectoryPath = nil;
     _diffTemporaryDirectoryPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSBundle mainBundle] bundleIdentifier]];
     [[NSFileManager defaultManager] removeItemAtPath:_diffTemporaryDirectoryPath error:NULL];
     if (![[NSFileManager defaultManager] createDirectoryAtPath:_diffTemporaryDirectoryPath withIntermediateDirectories:YES attributes:nil error:NULL]) {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
   }
 }
@@ -341,7 +340,7 @@ static NSString* _diffTemporaryDirectoryPath = nil;
     }
   }
   @catch (NSException* exception) {
-    XLOG_EXCEPTION(exception);
+    os_log_error(OS_LOG_DEFAULT, "%@ %@", exception.name, exception.reason);
     [self presentError:GCNewError(kGCErrorCode_Generic, exception.reason)];
   }
 }
@@ -456,7 +455,7 @@ static NSString* _diffTemporaryDirectoryPath = nil;
     } else if ([identifier isEqualToString:GIViewControllerTool_GitTool]) {
       [self _runDiffGitToolForFile:delta.canonicalPath withOldPath:oldPath newPath:newPath];
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
   }
   if (uuid) {
@@ -572,7 +571,7 @@ static NSString* _diffTemporaryDirectoryPath = nil;
   } else if ([identifier isEqualToString:GIViewControllerTool_GitTool]) {
     [self _runMergeGitToolForFile:mergePath withOldPath:ourPath newPath:theirPath basePath:ancestorPath];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -592,7 +591,7 @@ static NSString* _diffTemporaryDirectoryPath = nil;
                             parentCommits:(NSArray*)parentCommits
                                   message:(NSString*)message
                                     error:(NSError**)error {
-  XLOG_DEBUG_CHECK(parentCommits.count <= 2);
+  GC_DEBUG_CHECK(parentCommits.count <= 2);
 
   // Ensure repository is completely clean
   NSError* localError;
@@ -790,7 +789,7 @@ static NSString* _diffTemporaryDirectoryPath = nil;
           return;
         }
         NSString* oldSHA1 = delta.oldFile.SHA1;
-        XLOG_DEBUG_CHECK(oldSHA1 || (delta.change == kGCFileDiffChange_Added));
+        GC_DEBUG_CHECK(oldSHA1 || (delta.change == kGCFileDiffChange_Added));
         if ((oldSHA1 && ![self.repository exportBlobWithSHA1:oldSHA1 toPath:oldPath2 error:&error]) || (!oldSHA1 && ![[NSData data] writeToFile:oldPath2 options:0 error:&error])) {
           [self presentError:error];
           return;
@@ -802,7 +801,7 @@ static NSString* _diffTemporaryDirectoryPath = nil;
           return;
         }
         NSString* newSHA1 = delta.newFile.SHA1;
-        XLOG_DEBUG_CHECK(newSHA1 || (delta.change == kGCFileDiffChange_Deleted));
+        GC_DEBUG_CHECK(newSHA1 || (delta.change == kGCFileDiffChange_Deleted));
         if ((newSHA1 && ![self.repository exportBlobWithSHA1:newSHA1 toPath:newPath2 error:&error]) || (!newSHA1 && ![[NSData data] writeToFile:newPath2 options:0 error:&error])) {
           [self presentError:error];
           return;
@@ -825,7 +824,7 @@ static NSString* _diffTemporaryDirectoryPath = nil;
       }
 
       default:
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         break;
     }
   }
@@ -841,7 +840,7 @@ static NSString* _diffTemporaryDirectoryPath = nil;
   } else if ([identifier isEqualToString:GIViewControllerTool_P4Merge] || [identifier isEqualToString:GIViewControllerTool_GitTool]) {
     ;  // Handled above
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 

@@ -20,7 +20,6 @@
 #import "GICommitListViewController.h"
 
 #import "GIInterface.h"
-#import "XLFacilityMacros.h"
 
 @interface GICommitListViewController () <NSTableViewDataSource>
 @property(nonatomic, weak) IBOutlet GITableView* tableView;
@@ -89,7 +88,7 @@
       } else if ([result isKindOfClass:[GCHistoryTag class]]) {
         [_commits addObject:[(GCHistoryTag*)result commit]];
       } else {
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
       }
     }
   } else {
@@ -209,13 +208,13 @@
       view.typeTextField.stringValue = [(GCHistoryTag*)reference annotation] ? NSLocalizedString(@"Annotated Tag", nil) : NSLocalizedString(@"Tag", nil);
     } else {
       view.typeTextField.stringValue = @"";
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
     view.nameTextField.stringValue = reference.name;
     return view;
   }
 
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return nil;
 }
 
@@ -237,7 +236,7 @@
     return _referenceCellHeight;
   }
 
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return _tableView.rowHeight;
 }
 

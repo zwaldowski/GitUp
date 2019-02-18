@@ -46,7 +46,7 @@ void GIComputeHighlightRanges(const char* deletedBytes, NSUInteger deletedCount,
       } else if (TEST_BITS(byte, 0b11111100)) {
         remaining = 6;
       } else {
-        XLOG_DEBUG_CHECK(!(byte & (1 << 7)));
+        GC_DEBUG_CHECK(!(byte & (1 << 7)));
         remaining = 1;
       }
     }
@@ -74,9 +74,9 @@ void GIComputeHighlightRanges(const char* deletedBytes, NSUInteger deletedCount,
   }
 
   *deletedRange = CFRangeMake(start, deletedLength - end - start);
-  XLOG_DEBUG_CHECK(deletedRange->length >= 0);
+  GC_DEBUG_CHECK(deletedRange->length >= 0);
   *addedRange = CFRangeMake(start, addedLength - end - start);
-  XLOG_DEBUG_CHECK(addedRange->length >= 0);
+  GC_DEBUG_CHECK(addedRange->length >= 0);
 }
 
 void GIComputeModifiedRanges(NSString* beforeString, NSRange* beforeRange, NSString* afterString, NSRange* afterRange) {
@@ -106,7 +106,7 @@ static NSString* _WeekdayName(NSInteger index) {
     case 7:
       return NSLocalizedString(@"Saturday", nil);
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return nil;
 }
 

@@ -27,7 +27,7 @@ static const git_oid* _CommitParentCallback(size_t idx, void* payload) {
   NSArray* parents = (__bridge NSArray*)params[1];
   if (idx < parents.count) {
     GCCommit* commit = CFDictionaryGetValue(commits, (__bridge void*)parents[idx]);
-    XLOG_DEBUG_CHECK(commit);
+    GC_DEBUG_CHECK(commit);
     return git_commit_id(commit.private);
   }
   return NULL;
@@ -122,7 +122,7 @@ static const git_oid* _CommitParentCallback(size_t idx, void* payload) {
             }
 
             default: {
-              XLOG_DEBUG_UNREACHABLE();
+              GC_DEBUG_UNREACHABLE();
               GC_SET_GENERIC_ERROR(@"Invalid token");
               goto cleanup;
             }
@@ -152,7 +152,7 @@ static const git_oid* _CommitParentCallback(size_t idx, void* payload) {
       CALL_LIBGIT2_FUNCTION_GOTO(cleanup, git_commit_lookup, &emptyCommit, self.private, &oid);
       GCCommit* commit = [[GCCommit alloc] initWithRepository:self commit:emptyCommit];
       [commits addObject:commit];
-      XLOG_DEBUG_CHECK(!CFDictionaryContainsValue(cache, (__bridge const void*)message));
+      GC_DEBUG_CHECK(!CFDictionaryContainsValue(cache, (__bridge const void*)message));
       CFDictionarySetValue(cache, (__bridge const void*)message, (__bridge const void*)commit);
 
       // Create lightweight tag if necessary

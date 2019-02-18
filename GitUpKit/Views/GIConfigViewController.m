@@ -21,7 +21,6 @@
 #import "GIWindowController.h"
 
 #import "GIInterface.h"
-#import "XLFacilityMacros.h"
 
 @interface GIConfigViewController () <NSTableViewDataSource>
 @property(nonatomic, weak) IBOutlet GITableView* tableView;
@@ -64,11 +63,11 @@ static NSMutableDictionary* _patternHelp = nil;
   _directHelp = [[NSMutableDictionary alloc] init];
   _patternHelp = [[NSMutableDictionary alloc] init];
   NSString* string = [[NSString alloc] initWithContentsOfFile:[[NSBundle bundleForClass:[GIConfigViewController class]] pathForResource:@"GIConfigViewController-Help" ofType:@"txt"] encoding:NSUTF8StringEncoding error:NULL];
-  XLOG_DEBUG_CHECK(string);
+  GC_DEBUG_CHECK(string);
   string = [string stringByReplacingOccurrencesOfString:@"linkgit:" withString:@""];  // TODO: Handle links
   for (NSString* section in [string componentsSeparatedByString:@"\n\n\n"]) {
     NSRange range = [section rangeOfString:@"\n"];
-    XLOG_DEBUG_CHECK(range.location != NSNotFound);
+    GC_DEBUG_CHECK(range.location != NSNotFound);
     NSString* title = [section substringToIndex:range.location];
     NSString* content = [section substringFromIndex:(range.location + range.length)];
 
@@ -81,8 +80,8 @@ static NSMutableDictionary* _patternHelp = nil;
       NSRegularExpression* regex = [[NSRegularExpression alloc] initWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:NULL];
       [_patternHelp setObject:content forKey:regex];
     } else {
-      XLOG_DEBUG_CHECK([title rangeOfCharacterFromSet:set].location == NSNotFound);
-      XLOG_DEBUG_CHECK(![_directHelp objectForKey:[title lowercaseString]]);
+      GC_DEBUG_CHECK([title rangeOfCharacterFromSet:set].location == NSNotFound);
+      GC_DEBUG_CHECK(![_directHelp objectForKey:[title lowercaseString]]);
       [_directHelp setObject:content forKey:[title lowercaseString]];
     }
   }
@@ -176,7 +175,7 @@ static NSMutableDictionary* _patternHelp = nil;
         } else if (option1.level > option2.level) {
           result = NSOrderedDescending;
         } else {
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
         }
       }
       return result;
@@ -191,7 +190,7 @@ static NSMutableDictionary* _patternHelp = nil;
     [self presentError:error];
   }
   [_tableView reloadData];
-  XLOG_VERBOSE(@"Reloaded config for \"%@\"", self.repository.repositoryPath);
+  os_log_debug(OS_LOG_DEFAULT, "Reloaded config for \"%@\"", self.repository.repositoryPath);
 
   if (selectedOption && ![self _selectOptionWithLevel:selectedOption.level variable:selectedOption.variable]) {
     [_tableView selectRowIndexes:[NSIndexSet indexSetWithIndex:selectedRow] byExtendingSelection:NO];
@@ -281,7 +280,7 @@ static NSMutableDictionary* _patternHelp = nil;
     [[NSPasteboard generalPasteboard] declareTypes:@[ NSPasteboardTypeString ] owner:nil];
     [[NSPasteboard generalPasteboard] setString:[NSString stringWithFormat:@"%@ = %@", option.variable, option.value] forType:NSPasteboardTypeString];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -344,7 +343,7 @@ static NSMutableDictionary* _patternHelp = nil;
   if (row >= 0) {
     [self _promptOption:_config[row]];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -361,7 +360,7 @@ static NSMutableDictionary* _patternHelp = nil;
       [self presentError:error];
     }
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 

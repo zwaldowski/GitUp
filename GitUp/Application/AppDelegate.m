@@ -16,8 +16,6 @@
 #import <Security/Security.h>
 #import <Sparkle/Sparkle.h>
 
-#import <GitUpKit/XLFacilityMacros.h>
-
 #import "AppDelegate.h"
 #import "DocumentController.h"
 #import "Document.h"
@@ -124,13 +122,13 @@
         SecKeychainAttributeList* attributes;
         status = SecKeychainItemCopyAttributesAndData(itemRef, &info, NULL, &attributes, NULL, NULL);
         if (status == noErr) {
-          XLOG_DEBUG_CHECK(attributes->count == 1);
-          XLOG_DEBUG_CHECK(attributes->attr[0].tag == kSecAccountItemAttr);
+          GC_DEBUG_CHECK(attributes->count == 1);
+          GC_DEBUG_CHECK(attributes->attr[0].tag == kSecAccountItemAttr);
           *username = [[NSString alloc] initWithBytes:attributes->attr[0].data length:attributes->attr[0].length encoding:NSUTF8StringEncoding];
           success = YES;
           SecKeychainItemFreeAttributesAndData(attributes, NULL);
         } else {
-          XLOG_ERROR(@"SecKeychainItemCopyAttributesAndData() returned error %i", status);
+          os_log_error(OS_LOG_DEFAULT, "SecKeychainItemCopyAttributesAndData() returned error %i", status);
         }
       } else {
         success = YES;
@@ -141,10 +139,10 @@
         return YES;
       }
     } else if (status != errSecItemNotFound) {
-      XLOG_ERROR(@"SecKeychainFindInternetPassword() returned error %i", status);
+      os_log_error(OS_LOG_DEFAULT, "SecKeychainFindInternetPassword() returned error %i", status);
     }
   } else {
-    XLOG_WARNING(@"Unable to extract hostname from remote URL: %@", url);
+    os_log(OS_LOG_DEFAULT, "Unable to extract hostname from remote URL: %@", url);
   }
   return NO;
 }
@@ -156,7 +154,7 @@
   } else if ([url.scheme isEqualToString:@"https"]) {
     type = kSecProtocolTypeHTTPS;
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     return;
   }
   const char* serverName = url.host.UTF8String;
@@ -173,9 +171,9 @@
                                                    kSecAuthenticationTypeAny,
                                                    (UInt32)strlen(accountPassword), accountPassword, NULL);
   if (status != noErr) {
-    XLOG_ERROR(@"SecKeychainAddInternetPassword() returned error %i", status);
+    os_log_error(OS_LOG_DEFAULT, "SecKeychainAddInternetPassword() returned error %i", status);
   } else {
-    XLOG_VERBOSE(@"Successfully saved authentication in Keychain");
+    os_log_debug(OS_LOG_DEFAULT, "Successfully saved authentication in Keychain");
   }
 }
 
@@ -195,7 +193,7 @@
                                                                    } else {
                                                                      [(Document*)document setCloneMode:cloneMode];
                                                                      if ((NSUInteger)windowModeID != NSNotFound) {
-                                                                       XLOG_DEBUG_CHECK(cloneMode == kCloneMode_None);
+                                                                       GC_DEBUG_CHECK(cloneMode == kCloneMode_None);
                                                                        [self performSelector:@selector(_setDocumentWindowModeID:) withObject:@[ document, @(windowModeID) ] afterDelay:0.1];  // TODO: Try to schedule *after* -[Document _documentDidOpen] has been called
                                                                      }
                                                                    }
@@ -374,11 +372,11 @@
       CFRunLoopAddSource(CFRunLoopGetMain(), source, kCFRunLoopDefaultMode);  // Don't use kCFRunLoopCommonModes on purpose
       CFRelease(source);
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
   } else {
-    XLOG_ERROR(@"Failed creating message port for tool");
-    XLOG_DEBUG_UNREACHABLE();
+    os_log_error(OS_LOG_DEFAULT, "Failed creating message port for tool");
+    GC_DEBUG_UNREACHABLE();
   }
 
 #if __ENABLE_SUDDEN_TERMINATION__
@@ -435,9 +433,9 @@
 
 static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef inputData, void* info) {
   NSDictionary* input = [NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData*)inputData];
-  XLOG_DEBUG_CHECK(input);
+  GC_DEBUG_CHECK(input);
   NSDictionary* output = [(__bridge AppDelegate*)info _processToolCommand:input];
-  XLOG_DEBUG_CHECK(output);
+  GC_DEBUG_CHECK(output);
   // TODO use +[NSKeyedArchiver archivedDataWithRootObject:] on 10.12+
   NSMutableData* outputData = [NSMutableData data];
   NSKeyedArchiver* archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:outputData];
@@ -697,7 +695,7 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
       return YES;
     }
   } else {
-    XLOG_VERBOSE(@"Skipping Keychain lookup for repeated authentication failures");
+    os_log_debug(OS_LOG_DEFAULT, "Skipping Keychain lookup for repeated authentication failures");
   }
 
   _authenticationURLTextField.stringValue = url.absoluteString;
@@ -733,7 +731,7 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
 
 - (void)updater:(SUUpdater*)updater didFindValidUpdate:(SUAppcastItem*)item {
   NSString* channel = [[NSUserDefaults standardUserDefaults] stringForKey:kUserDefaultsKey_ReleaseChannel];
-  XLOG_INFO(@"Did find app update on channel '%@' for version %@", channel, item.versionString);
+  os_log_info(OS_LOG_DEFAULT, "Did find app update on channel '%@' for version %@", channel, item.versionString);
   if (_manualCheck) {
     NSAlert* alert = [[NSAlert alloc] init];
     alert.messageText = NSLocalizedString(@"A GitUp update is available!", nil);
@@ -746,7 +744,7 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
 
 - (void)updaterDidNotFindUpdate:(SUUpdater*)updater {
   NSString* channel = [[NSUserDefaults standardUserDefaults] stringForKey:kUserDefaultsKey_ReleaseChannel];
-  XLOG_VERBOSE(@"App is up-to-date at version %@ on channel '%@'", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"], channel);
+  os_log_debug(OS_LOG_DEFAULT, "App is up-to-date at version %@ on channel '%@'", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"], channel);
   if (_manualCheck) {
     NSAlert* alert = [[NSAlert alloc] init];
     alert.messageText = NSLocalizedString(@"GitUp is already up-to-date!", nil);
@@ -759,16 +757,16 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
 - (void)updater:(SUUpdater*)updater didAbortWithError:(NSError*)error {
   NSString* channel = [[NSUserDefaults standardUserDefaults] stringForKey:kUserDefaultsKey_ReleaseChannel];
   if (![error.domain isEqualToString:SUSparkleErrorDomain] || (error.code != SUNoUpdateError)) {
-    XLOG_ERROR(@"App update on channel '%@' aborted: %@", channel, error);
+    os_log_error(OS_LOG_DEFAULT, "App update on channel '%@' aborted: %@", channel, error);
   }
 }
 
 - (void)updater:(SUUpdater*)updater willInstallUpdate:(SUAppcastItem*)item {
-  XLOG_INFO(@"Installing app update for version %@", item.versionString);
+  os_log_info(OS_LOG_DEFAULT, "Installing app update for version %@", item.versionString);
 }
 
 - (void)updater:(SUUpdater*)updater willInstallUpdateOnQuit:(SUAppcastItem*)item immediateInstallationInvocation:(NSInvocation*)invocation {
-  XLOG_INFO(@"Will install app update for version %@ on quit", item.versionString);
+  os_log_info(OS_LOG_DEFAULT, "Will install app update for version %@ on quit", item.versionString);
   _updatePending = YES;
   [self _showNotificationWithTitle:NSLocalizedString(@"Update Available", nil)
                             action:NULL

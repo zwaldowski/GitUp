@@ -24,7 +24,6 @@
 
 #import "GIInterface.h"
 #import "GCRepository+Utilities.h"
-#import "XLFacilityMacros.h"
 
 @interface GISimpleCommitViewController () <GIDiffContentsViewControllerDelegate, GIDiffFilesViewControllerDelegate>
 @property(nonatomic, weak) IBOutlet NSView* contentsView;
@@ -61,7 +60,7 @@
 - (void)viewWillShow {
   [super viewWillShow];
 
-  XLOG_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Disabled);
+  GC_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Disabled);
   self.repository.statusMode = kGCLiveRepositoryStatusMode_Unified;
 
   [self _reloadContents];
@@ -76,7 +75,7 @@
   [_diffContentsViewController setDeltas:nil usingConflicts:nil];
   [_diffFilesViewController setDeltas:nil usingConflicts:nil];
 
-  XLOG_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Unified);
+  GC_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Unified);
   self.repository.statusMode = kGCLiveRepositoryStatusMode_Disabled;
 }
 

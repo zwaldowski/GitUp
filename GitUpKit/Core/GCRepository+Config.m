@@ -41,7 +41,7 @@ static inline GCConfigLevel _ConfigLevelFromLevel(git_config_level_t level) {
     case GIT_CONFIG_HIGHEST_LEVEL:
       break;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return 0;
 }
 
@@ -56,7 +56,7 @@ static inline git_config_level_t _ConfigLevelToLevel(GCConfigLevel level) {
     case kGCConfigLevel_Local:
       return GIT_CONFIG_LEVEL_LOCAL;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return 0;
 }
 

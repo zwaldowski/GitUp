@@ -36,7 +36,7 @@ static inline BOOL _IsDirectoryWritable(const char* path) {
   if (status == 0) {
     return YES;
   }
-  XLOG_DEBUG_CHECK(errno == EACCES);
+  GC_DEBUG_CHECK(errno == EACCES);
   return NO;
 }
 
@@ -49,7 +49,7 @@ static inline NSString* _MakeDirectoryPath(const char* path) {
     --length;
   }
   if (!length) {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     return nil;
   }
   return [[NSFileManager defaultManager] stringWithFileSystemRepresentation:path length:length];
@@ -67,7 +67,7 @@ static int _GitLFSApply(git_filter* self, void** payload, git_buf* to, const git
       } else if (git_filter_source_mode(src) == GIT_FILTER_CLEAN) {  // Worktree -> ODB
         [arguments addObject:@"clean"];
       } else {
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         return -1;
       }
       [arguments addObject:@"--"];
@@ -78,13 +78,13 @@ static int _GitLFSApply(git_filter* self, void** payload, git_buf* to, const git
       NSData* stdinData = [[NSData alloc] initWithBytesNoCopy:from->ptr length:from->size freeWhenDone:NO];
       NSData* stdoutData;
       if (![task runWithArguments:arguments stdin:stdinData stdout:&stdoutData stderr:NULL exitStatus:&status error:NULL]) {
-        XLOG_ERROR(@"git-lfs tool failed executing");
+        os_log_error(OS_LOG_DEFAULT, "git-lfs tool failed executing");
         giterr_set_str(GITERR_FILTER, "git-lfs tool failed executing");
         return -1;
       }
-      XLOG_VERBOSE(@"Executed git-lfs tool in %.3f seconds", CFAbsoluteTimeGetCurrent() - time);
+      os_log_debug(OS_LOG_DEFAULT, "Executed git-lfs tool in %.3f seconds", CFAbsoluteTimeGetCurrent() - time);
       if (status != 0) {
-        XLOG_ERROR(@"git-lfs tool exited with non-zero status (%i)", status);
+        os_log_error(OS_LOG_DEFAULT, "git-lfs tool exited with non-zero status (%i)", status);
         giterr_set_str(GITERR_FILTER, "git-lfs tool exited with non-zero status");
         return -1;
       }
@@ -200,7 +200,7 @@ static int _ReferenceForEachCallback(const char* refname, void* payload) {
   if (status == GIT_PASSTHROUGH) {
     empty = NO;
   } else if (status != GIT_OK) {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     LOG_LIBGIT2_ERROR(status);
     empty = NO;
   } else {
@@ -208,7 +208,7 @@ static int _ReferenceForEachCallback(const char* refname, void* payload) {
     if (status == 0) {
       empty = NO;
     } else if (status < 0) {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       LOG_LIBGIT2_ERROR(status);
       empty = NO;
     }
@@ -239,7 +239,7 @@ static int _ReferenceForEachCallback(const char* refname, void* payload) {
     case GIT_REPOSITORY_STATE_APPLY_MAILBOX_OR_REBASE:
       return kGCRepositoryState_ApplyMailboxOrRebase;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return 0;
 }
 
@@ -261,7 +261,7 @@ static int _ReferenceForEachCallback(const char* refname, void* payload) {
 }
 
 - (NSString*)absolutePathForFile:(NSString*)path {
-  XLOG_CHECK(_workingDirectoryPath && path.length);
+  GC_CHECK(_workingDirectoryPath && path.length);
   return [_workingDirectoryPath stringByAppendingPathComponent:path];
 }
 
@@ -279,19 +279,19 @@ static int _ReferenceForEachCallback(const char* refname, void* payload) {
   BOOL isDirectory;
   if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDirectory]) {
     if (!isDirectory) {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       return nil;
     }
   } else {
     NSError* error;
     if (![[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&error]) {
-      XLOG_ERROR(@"Failed creating private app directory at \"%@\"", path);
+      os_log_error(OS_LOG_DEFAULT, "Failed creating private app directory at \"%@\"", path);
       return nil;
     }
   }
 
   if (!_IsDirectoryWritable(path.fileSystemRepresentation)) {
-    XLOG_ERROR(@"Private app directory at \"%@\" is not writable", path);
+    os_log_error(OS_LOG_DEFAULT, "Private app directory at \"%@\" is not writable", path);
     return nil;
   }
   return path;
@@ -327,7 +327,7 @@ static int _ReferenceForEachCallback(const char* refname, void* payload) {
         return NO;
       }
       cachedPATH = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-      XLOG_DEBUG_CHECK(cachedPATH);
+      GC_DEBUG_CHECK(cachedPATH);
     }
 
     CFAbsoluteTime time = CFAbsoluteTimeGetCurrent();
@@ -338,14 +338,14 @@ static int _ReferenceForEachCallback(const char* refname, void* payload) {
     NSData* stdoutData;
     NSData* stderrData;
     if (![task runWithArguments:arguments stdin:[standardInput dataUsingEncoding:NSUTF8StringEncoding] stdout:&stdoutData stderr:&stderrData exitStatus:&status error:error]) {
-      XLOG_ERROR(@"Failed executing '%@' hook", name);
+      os_log_error(OS_LOG_DEFAULT, "Failed executing '%@' hook", name);
       return NO;
     }
-    XLOG_VERBOSE(@"Executed '%@' hook in %.3f seconds", name, CFAbsoluteTimeGetCurrent() - time);
+    os_log_debug(OS_LOG_DEFAULT, "Executed '%@' hook in %.3f seconds", name, CFAbsoluteTimeGetCurrent() - time);
     if (status != 0) {
       if (error) {
         NSString* string = [[[NSString alloc] initWithData:(stderrData.length ? stderrData : stdoutData)encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-        XLOG_DEBUG_CHECK(string);
+        GC_DEBUG_CHECK(string);
         NSDictionary* info = @{
           NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Hook '%@' exited with non-zero status (%i)", name, status],
           NSLocalizedRecoverySuggestionErrorKey : (string ? string : @"")
@@ -382,7 +382,7 @@ static int _ReferenceForEachCallback(const char* refname, void* payload) {
   int status = git_status_list_new(&list, self.private, &options);
   if (status != GIT_OK) {
     LOG_LIBGIT2_ERROR(status);
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
     return NO;
   }
   BOOL dirty = git_status_list_entrycount(list) > 0;
@@ -441,7 +441,7 @@ static int _CredentialsCallback(git_cred** cred, const char* url, const char* us
 
 #if !TARGET_OS_IPHONE
     if (repository->_privateKeyList == nil) {
-      XLOG_WARNING(@"SSH Agent did not find any key for \"%s\"", url);
+      os_log(OS_LOG_DEFAULT, "SSH Agent did not find any key for \"%s\"", url);
       NSMutableArray* array = [[NSMutableArray alloc] init];
       NSString* basePath = [NSHomeDirectory() stringByAppendingPathComponent:@".ssh"];
       for (NSString* file in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:basePath error:NULL]) {
@@ -463,7 +463,7 @@ static int _CredentialsCallback(git_cred** cred, const char* url, const char* us
     }
     if (repository->_privateKeyIndex < [repository->_privateKeyList count]) {
       const char* path = [[repository->_privateKeyList objectAtIndex:repository->_privateKeyIndex++] fileSystemRepresentation];
-      XLOG_VERBOSE(@"Trying SSH key \"%s\" for \"%s\"", path, url);
+      os_log_debug(OS_LOG_DEFAULT, "Trying SSH key \"%s\" for \"%s\"", path, url);
       return git_cred_ssh_key_new(cred, user, NULL, path, NULL);  // TODO: Handle passphrases
     }
 #endif
@@ -530,13 +530,13 @@ static int _CredentialsCallback(git_cred** cred, const char* url, const char* us
 
 // Called when fetching only
 static int _TransportMessageCallback(const char* str, int len, void* payload) {
-  XLOG_VERBOSE(@"Remote transport message: %@", [[[NSString alloc] initWithBytes:str length:len encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]]);
+  os_log_debug(OS_LOG_DEFAULT, "Remote transport message: %@", [[[NSString alloc] initWithBytes:str length:len encoding:NSUTF8StringEncoding] stringByTrimmingCharactersInSet:[NSCharacterSet newlineCharacterSet]]);
   return GIT_OK;
 }
 
 // Called when fetching only
 static int _FetchTransferProgressCallback(const git_transfer_progress* stats, void* payload) {
-  XLOG_DEBUG(@"Remote fetched %i / %i objects (%zu bytes)", stats->received_objects, stats->total_objects, stats->received_bytes);
+  os_log_debug(OS_LOG_DEFAULT, "Remote fetched %i / %i objects (%zu bytes)", stats->received_objects, stats->total_objects, stats->received_bytes);
   GCRepository* repository = (__bridge GCRepository*)payload;
   if (repository->_hasFetchProgressDelegate) {
     float progress = roundf(100.0 * (float)(stats->received_objects + stats->indexed_objects) / (float)(2 * stats->total_objects));
@@ -558,7 +558,7 @@ static int _FetchTransferProgressCallback(const git_transfer_progress* stats, vo
 static int _UpdateTipsCallback(const char* refname, const git_oid* a, const git_oid* b, void* data) {
   char bufferA[8];
   char bufferB[8];
-  XLOG_VERBOSE(@"Remote updated \"%s\" from %s to %s", refname, git_oid_tostr(bufferA, sizeof(bufferA), a), git_oid_tostr(bufferB, sizeof(bufferB), b));
+  os_log_debug(OS_LOG_DEFAULT, "Remote updated \"%s\" from %s to %s", refname, git_oid_tostr(bufferA, sizeof(bufferA), a), git_oid_tostr(bufferB, sizeof(bufferB), b));
   GCRepository* repository = (__bridge GCRepository*)data;
   repository->_lastUpdatedTips += 1;
   return GIT_OK;
@@ -566,13 +566,13 @@ static int _UpdateTipsCallback(const char* refname, const git_oid* a, const git_
 
 // Called when pushing only
 static int _PackbuilderProgressCallback(int stage, unsigned int current, unsigned int total, void* payload) {
-  XLOG_DEBUG(@"Remote packed %i / %i objects", current, total);
+  os_log_debug(OS_LOG_DEFAULT, "Remote packed %i / %i objects", current, total);
   return GIT_OK;
 }
 
 // Called when pushing only
 static int _PushTransferProgressCallback(unsigned int current, unsigned int total, size_t bytes, void* payload) {
-  XLOG_DEBUG(@"Pushed %i / %i objects (%zu bytes)", current, total, bytes);
+  os_log_debug(OS_LOG_DEFAULT, "Pushed %i / %i objects (%zu bytes)", current, total, bytes);
   GCRepository* repository = (__bridge GCRepository*)payload;
   if (repository->_hasPushProgressDelegate) {
     float progress = roundf(100.0 * (float)current / (float)total);
@@ -593,7 +593,7 @@ static int _PushTransferProgressCallback(unsigned int current, unsigned int tota
 // Called when pushing only
 static int _PushUpdateReferenceCallback(const char* refspec, const char* message, void* data) {
   if (message) {
-    XLOG_ERROR(@"Failed updating remote reference '%s': %s", refspec, message);
+    os_log_error(OS_LOG_DEFAULT, "Failed updating remote reference '%s': %s", refspec, message);
     giterr_set_str(GITERR_NET, [[NSString stringWithFormat:@"remote reference '%s' failed to update: %s", refspec, message] UTF8String]);
     return GIT_ERROR;
   }
@@ -609,7 +609,7 @@ static int _PushNegotiationCallback(git_remote* remote, const git_push_update** 
     for (size_t i = 0; i < len; ++i) {
       const git_push_update* update = updates[i];
       if (update->src_refname[0]) {
-        XLOG_DEBUG_CHECK(update->dst_refname[0] && !git_oid_iszero(&update->dst));
+        GC_DEBUG_CHECK(update->dst_refname[0] && !git_oid_iszero(&update->dst));
         if (git_oid_iszero(&update->src)) {  // Adding ref: "'src_refname' 0 'dst_refname' OID" -> "refs/heads/master 67890 refs/heads/foreign 0"
           [string appendFormat:@"%s %s ", update->src_refname, git_oid_tostr_s(&update->dst)];
           [string appendFormat:@"%s %s\n", update->dst_refname, git_oid_tostr_s(&update->src)];
@@ -618,7 +618,7 @@ static int _PushNegotiationCallback(git_remote* remote, const git_push_update** 
           [string appendFormat:@"%s %s\n", update->dst_refname, git_oid_tostr_s(&update->src)];
         }
       } else {  // Deleting ref: "'' OID 'dst_refname' 0" -> "(delete) 0 refs/heads/foreign 12345"
-        XLOG_DEBUG_CHECK(!git_oid_iszero(&update->src) && update->dst_refname[0] && git_oid_iszero(&update->dst));
+        GC_DEBUG_CHECK(!git_oid_iszero(&update->src) && update->dst_refname[0] && git_oid_iszero(&update->dst));
         [string appendFormat:@"(delete) %s ", git_oid_tostr_s(&update->dst)];
         [string appendFormat:@"%s %s\n", update->dst_refname, git_oid_tostr_s(&update->src)];
       }
@@ -689,7 +689,7 @@ static int _PushNegotiationCallback(git_remote* remote, const git_push_update** 
     success = YES;
   } else {
     GC_SET_GENERIC_ERROR(@"%s", strerror(errno));
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 
 cleanup:

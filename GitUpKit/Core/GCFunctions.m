@@ -85,8 +85,8 @@ NSData* GCCleanedUpCommitMessage(NSString* message) {
   if (message.length) {
     git_buf buffer = {0};
     if (git_message_prettify(&buffer, message.UTF8String, 0, 0) == GIT_OK) {
-      XLOG_DEBUG_CHECK(buffer.asize > buffer.size);
-      XLOG_DEBUG_CHECK(buffer.ptr[buffer.size] == 0);
+      GC_DEBUG_CHECK(buffer.asize > buffer.size);
+      GC_DEBUG_CHECK(buffer.ptr[buffer.size] == 0);
       data = [[NSData alloc] initWithBytes:buffer.ptr length:(buffer.size + 1)];
       git_buf_free(&buffer);
     }
@@ -128,7 +128,7 @@ NSURL* GCURLFromGitURL(NSString* url) {
       URL = [NSURL URLWithString:url];
     }
   }
-  XLOG_DEBUG_CHECK(URL);
+  GC_DEBUG_CHECK(URL);
   return URL;
 }
 
@@ -183,7 +183,7 @@ GCFileMode GCFileModeFromMode(git_filemode_t mode) {
     case GIT_FILEMODE_COMMIT:
       return kGCFileMode_Commit;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return 0;
 }
 

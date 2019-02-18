@@ -144,7 +144,7 @@ static int _odb_backend_init_statements(sqlite3_odb* backend) {
 }
 
 static int _odb_read_header(size_t* len_out, git_otype* type_out, git_odb_backend* _backend, const git_oid* oid) {
-  XLOG_DEBUG_CHECK(len_out && type_out && _backend && oid);
+  GC_DEBUG_CHECK(len_out && type_out && _backend && oid);
   sqlite3_odb* backend = (sqlite3_odb*)_backend;
   int error = GIT_ERROR;
 
@@ -164,7 +164,7 @@ static int _odb_read_header(size_t* len_out, git_otype* type_out, git_odb_backen
 }
 
 static int _odb_read(void** data_out, size_t* len_out, git_otype* type_out, git_odb_backend* _backend, const git_oid* oid) {
-  XLOG_DEBUG_CHECK(data_out && len_out && type_out && _backend && oid);
+  GC_DEBUG_CHECK(data_out && len_out && type_out && _backend && oid);
   sqlite3_odb* backend = (sqlite3_odb*)_backend;
   int error = GIT_ERROR;
 
@@ -187,7 +187,7 @@ static int _odb_read(void** data_out, size_t* len_out, git_otype* type_out, git_
 
 // TODO: Optimize lookup avoiding HEX conversion
 static int _odb_read_prefix(git_oid* oid_out, void** data_out, size_t* len_out, git_otype* type_out, git_odb_backend* _backend, const git_oid* short_oid, size_t len) {
-  XLOG_DEBUG_CHECK(oid_out && data_out && len_out && type_out && _backend && short_oid);
+  GC_DEBUG_CHECK(oid_out && data_out && len_out && type_out && _backend && short_oid);
   sqlite3_odb* backend = (sqlite3_odb*)_backend;
   int error = GIT_ERROR;
 
@@ -206,7 +206,7 @@ static int _odb_read_prefix(git_oid* oid_out, void** data_out, size_t* len_out, 
       if (sqlite3_bind_text(backend->read_prefix, 2, buffer, (int)len, SQLITE_STATIC) == SQLITE_OK) {
         int result = sqlite3_step(backend->read_prefix);
         if (result == SQLITE_ROW) {
-          XLOG_DEBUG_CHECK(sqlite3_column_bytes(backend->read_prefix, 0) == GIT_OID_RAWSZ);
+          GC_DEBUG_CHECK(sqlite3_column_bytes(backend->read_prefix, 0) == GIT_OID_RAWSZ);
           const void* oid = sqlite3_column_blob(backend->read_prefix, 0);
           git_oid_cpy(oid_out, oid);
           *type_out = sqlite3_column_int(backend->read_prefix, 1);
@@ -227,7 +227,7 @@ static int _odb_read_prefix(git_oid* oid_out, void** data_out, size_t* len_out, 
 }
 
 static int _odb_exists(git_odb_backend* _backend, const git_oid* oid) {
-  XLOG_DEBUG_CHECK(_backend && oid);
+  GC_DEBUG_CHECK(_backend && oid);
   sqlite3_odb* backend = (sqlite3_odb*)_backend;
   int exists = 0;
 
@@ -244,7 +244,7 @@ static int _odb_exists(git_odb_backend* _backend, const git_oid* oid) {
 
 // TODO: Optimize lookup avoiding HEX conversion
 static int _odb_exists_prefix(git_oid* oid_out, git_odb_backend* _backend, const git_oid* short_oid, size_t len) {  // WARNING: "len" is in hexadecimal characters, not bytes!
-  XLOG_DEBUG_CHECK(oid_out && _backend && short_oid);
+  GC_DEBUG_CHECK(oid_out && _backend && short_oid);
   sqlite3_odb* backend = (sqlite3_odb*)_backend;
   int error = GIT_ERROR;
 
@@ -265,7 +265,7 @@ static int _odb_exists_prefix(git_oid* oid_out, git_odb_backend* _backend, const
       if (sqlite3_bind_text(backend->exists_prefix, 2, buffer, (int)len, SQLITE_STATIC) == SQLITE_OK) {
         int result = sqlite3_step(backend->exists_prefix);
         if (result == SQLITE_ROW) {
-          XLOG_DEBUG_CHECK(sqlite3_column_bytes(backend->exists_prefix, 0) == GIT_OID_RAWSZ);
+          GC_DEBUG_CHECK(sqlite3_column_bytes(backend->exists_prefix, 0) == GIT_OID_RAWSZ);
           const void* oid = sqlite3_column_blob(backend->exists_prefix, 0);
           git_oid_cpy(oid_out, oid);
           // assert(sqlite3_step(backend->exists_prefix) == SQLITE_DONE);
@@ -282,7 +282,7 @@ static int _odb_exists_prefix(git_oid* oid_out, git_odb_backend* _backend, const
 }
 
 static int _odb_write(git_odb_backend* _backend, const git_oid* oid, const void* data, size_t len, git_otype type) {
-  XLOG_DEBUG_CHECK(_backend && oid && data);
+  GC_DEBUG_CHECK(_backend && oid && data);
   sqlite3_odb* backend = (sqlite3_odb*)_backend;
   int error = GIT_ERROR;
 
@@ -303,7 +303,7 @@ static int _odb_write(git_odb_backend* _backend, const git_oid* oid, const void*
 }
 
 static void _odb_free(git_odb_backend* _backend) {
-  XLOG_DEBUG_CHECK(_backend);
+  GC_DEBUG_CHECK(_backend);
   sqlite3_odb* backend = (sqlite3_odb*)_backend;
 
   sqlite3_finalize(backend->exists);
@@ -319,14 +319,14 @@ static void _odb_free(git_odb_backend* _backend) {
 }
 
 static int _odb_foreach(git_odb_backend* _backend, git_odb_foreach_cb cb, void* payload) {
-  XLOG_DEBUG_CHECK(_backend && cb);
+  GC_DEBUG_CHECK(_backend && cb);
   sqlite3_odb* backend = (sqlite3_odb*)_backend;
   int error = GIT_ERROR;
 
   while (1) {
     int result = sqlite3_step(backend->foreach);
     if (result == SQLITE_ROW) {
-      XLOG_DEBUG_CHECK(sqlite3_column_bytes(backend->foreach, 0) == GIT_OID_RAWSZ);
+      GC_DEBUG_CHECK(sqlite3_column_bytes(backend->foreach, 0) == GIT_OID_RAWSZ);
       error = cb(sqlite3_column_blob(backend->foreach, 0), payload);
       if (error) {
         break;
@@ -487,7 +487,7 @@ static int _refdb_backend_init_statements(sqlite3_refdb* backend) {
 }
 
 static int _refdb_exists(int* exists, git_refdb_backend* _backend, const char* ref_name) {
-  XLOG_DEBUG_CHECK(exists && _backend && ref_name);
+  GC_DEBUG_CHECK(exists && _backend && ref_name);
   sqlite3_refdb* backend = (sqlite3_refdb*)_backend;
   int error = GIT_ERROR;
 
@@ -511,7 +511,7 @@ static int _refdb_create_reference(git_reference** reference_out, sqlite3_stmt* 
   int error = GIT_ERROR;
   const char* name = (const char*)sqlite3_column_text(statement, 0);
   const void* oid = sqlite3_column_blob(statement, 1);
-  XLOG_DEBUG_CHECK(!oid || (sqlite3_column_bytes(statement, 1) == GIT_OID_RAWSZ));
+  GC_DEBUG_CHECK(!oid || (sqlite3_column_bytes(statement, 1) == GIT_OID_RAWSZ));
   const char* target = (const char*)sqlite3_column_text(statement, 2);
   if (target) {
     *reference_out = git_reference__alloc_symbolic(name, target);
@@ -524,7 +524,7 @@ static int _refdb_create_reference(git_reference** reference_out, sqlite3_stmt* 
 }
 
 static int _refdb_lookup(git_reference** reference_out, git_refdb_backend* _backend, const char* ref_name) {
-  XLOG_DEBUG_CHECK(reference_out && _backend && ref_name);
+  GC_DEBUG_CHECK(reference_out && _backend && ref_name);
   sqlite3_refdb* backend = (sqlite3_refdb*)_backend;
   int error = GIT_ERROR;
 
@@ -545,7 +545,7 @@ static int _refdb_lookup(git_reference** reference_out, git_refdb_backend* _back
 }
 
 static int _refdb_iterator_next(git_reference** reference_out, git_reference_iterator* _iterator) {
-  XLOG_DEBUG_CHECK(reference_out && _iterator);
+  GC_DEBUG_CHECK(reference_out && _iterator);
   sqlite3_refdb_iterator* iterator = (sqlite3_refdb_iterator*)_iterator;
   int error = GIT_ERROR;
 
@@ -562,7 +562,7 @@ static int _refdb_iterator_next(git_reference** reference_out, git_reference_ite
 }
 
 static int _refdb_iterator_next_name(const char** ref_name_out, git_reference_iterator* _iterator) {
-  XLOG_DEBUG_CHECK(ref_name_out && _iterator);
+  GC_DEBUG_CHECK(ref_name_out && _iterator);
   sqlite3_refdb_iterator* iterator = (sqlite3_refdb_iterator*)_iterator;
   int error = GIT_ERROR;
 
@@ -580,7 +580,7 @@ static int _refdb_iterator_next_name(const char** ref_name_out, git_reference_it
 }
 
 static void _refdb_iterator_free(git_reference_iterator* _iterator) {
-  XLOG_DEBUG_CHECK(_iterator);
+  GC_DEBUG_CHECK(_iterator);
   sqlite3_refdb_iterator* iterator = (sqlite3_refdb_iterator*)_iterator;
 
   sqlite3_reset(iterator->statement);
@@ -589,7 +589,7 @@ static void _refdb_iterator_free(git_reference_iterator* _iterator) {
 }
 
 static int _refdb_iterator(git_reference_iterator** iterator_out, git_refdb_backend* _backend, const char* glob) {
-  XLOG_DEBUG_CHECK(iterator_out && _backend && !glob);
+  GC_DEBUG_CHECK(iterator_out && _backend && !glob);
   sqlite3_refdb* backend = (sqlite3_refdb*)_backend;
 
   sqlite3_refdb_iterator* iterator = calloc(1, sizeof(sqlite3_refdb_iterator));
@@ -603,7 +603,7 @@ static int _refdb_iterator(git_reference_iterator** iterator_out, git_refdb_back
 }
 
 static int _refdb_write(git_refdb_backend* _backend, const git_reference* ref, int force, const git_signature* who, const char* message, const git_oid* old_id, const char* old_target) {
-  XLOG_DEBUG_CHECK(_backend && ref && (old_id || old_target || (!old_id && !old_target)));
+  GC_DEBUG_CHECK(_backend && ref && (old_id || old_target || (!old_id && !old_target)));
   sqlite3_refdb* backend = (sqlite3_refdb*)_backend;
 
   git_reference* oldRef;
@@ -657,7 +657,7 @@ static int _refdb_write(git_refdb_backend* _backend, const git_reference* ref, i
 
 // TODO: Update reflog if available
 static int _refdb_rename(git_reference** reference_out, git_refdb_backend* _backend, const char* old_name, const char* new_name, int force, const git_signature* who, const char* message) {
-  XLOG_DEBUG_CHECK(reference_out && _backend && old_name && new_name);
+  GC_DEBUG_CHECK(reference_out && _backend && old_name && new_name);
   sqlite3_refdb* backend = (sqlite3_refdb*)_backend;
 
   *reference_out = NULL;
@@ -699,7 +699,7 @@ static int _refdb_rename(git_reference** reference_out, git_refdb_backend* _back
 }
 
 static int _refdb_del(git_refdb_backend* _backend, const char* ref_name, const git_oid* old_id, const char* old_target) {
-  XLOG_DEBUG_CHECK(_backend && ref_name && (old_id || old_target || (!old_id && !old_target)));
+  GC_DEBUG_CHECK(_backend && ref_name && (old_id || old_target || (!old_id && !old_target)));
   sqlite3_refdb* backend = (sqlite3_refdb*)_backend;
   BOOL shouldDelete = NO;
 
@@ -737,12 +737,12 @@ static int _refdb_has_log(git_refdb_backend* _backend, const char* refname) {
 }
 
 static int _refdb_ensure_log(git_refdb_backend* _backend, const char* refname) {
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return GIT_ERROR;
 }
 
 static void _refdb_free(git_refdb_backend* _backend) {
-  XLOG_DEBUG_CHECK(_backend);
+  GC_DEBUG_CHECK(_backend);
   sqlite3_refdb* backend = (sqlite3_refdb*)_backend;
 
   sqlite3_finalize(backend->exists);
@@ -759,17 +759,17 @@ static void _refdb_free(git_refdb_backend* _backend) {
 }
 
 static int _refdb_reflog_read(git_reflog** reflog_out, git_refdb_backend* _backend, const char* name) {
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return GIT_ERROR;
 }
 
 static int _refdb_reflog_write(git_refdb_backend* _backend, git_reflog* reflog) {
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return GIT_ERROR;
 }
 
 static int _refdb_reflog_rename(git_refdb_backend* _backend, const char* old_name, const char* new_name) {
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return GIT_ERROR;
 }
 
@@ -844,7 +844,7 @@ static int _ForeachCallback(const git_oid* oid, void* payload) {
   git_odb_object* object;
   int error = git_odb_read(&object, sourceODB, oid);
   if (error == GIT_OK) {
-    XLOG_DEBUG_CHECK(git_oid_equal(git_odb_object_id(object), oid));
+    GC_DEBUG_CHECK(git_oid_equal(git_odb_object_id(object), oid));
     error = _odb_write(destBackend, oid, git_odb_object_data(object), git_odb_object_size(object), git_odb_object_type(object));
     git_odb_object_free(object);
   }

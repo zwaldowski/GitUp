@@ -46,7 +46,7 @@ static inline GCFileDiffChange _FileDiffChangeFromStatus(git_delta_t status) {
     case GIT_DELTA_CONFLICTED:
       return kGCFileDiffChange_Conflicted;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return 0;
 }
 
@@ -60,7 +60,7 @@ static inline GCFileDiffChange _FileDiffChangeFromStatus(git_delta_t status) {
     _mode = GCFileModeFromMode(file->mode);
     git_oid_cpy(&_oid, &file->id);
     if (_path == nil) {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       return nil;
     }
   }
@@ -108,7 +108,7 @@ static inline GCFileDiffChange _FileDiffChangeFromStatus(git_delta_t status) {
       if (git_patch_get_hunk(&hunk, NULL, _private, i) == GIT_OK) {
         beginHunkHandler(hunk->old_start, hunk->old_lines, hunk->new_start, hunk->new_lines);
       } else {
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         continue;
       }
     }
@@ -135,11 +135,11 @@ static inline GCFileDiffChange _FileDiffChangeFromStatus(git_delta_t status) {
               break;
 
             default:
-              XLOG_DEBUG_UNREACHABLE();
+              GC_DEBUG_UNREACHABLE();
               break;
           }
         } else {
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
         }
       }
     }
@@ -180,22 +180,22 @@ static inline GCFileDiffChange _FileDiffChangeFromStatus(git_delta_t status) {
         _oldFile = [[GCDiffFile alloc] initWithDiffFile:&delta->old_file];
         _newFile = [[GCDiffFile alloc] initWithDiffFile:&delta->new_file];
       } else {
-        XLOG_DEBUG_CHECK((delta->status == GIT_DELTA_IGNORED) || (delta->status == GIT_DELTA_UNTRACKED) || (delta->status == GIT_DELTA_UNREADABLE));
+        GC_DEBUG_CHECK((delta->status == GIT_DELTA_IGNORED) || (delta->status == GIT_DELTA_UNTRACKED) || (delta->status == GIT_DELTA_UNREADABLE));
         _oldFile = [[GCDiffFile alloc] initWithDiffFile:&delta->new_file];  // For single-file deltas, libgit2 only sets the "new" side except for "deleted"
       }
     } else {
-      XLOG_DEBUG_CHECK(delta->nfiles == 2);
+      GC_DEBUG_CHECK(delta->nfiles == 2);
       if (delta->status == GIT_DELTA_UNMODIFIED) {
         _oldFile = [[GCDiffFile alloc] initWithDiffFile:&delta->old_file];  // For dual-file deltas, libgit2 considers the "old" side as the primary one
       } else {
-        XLOG_DEBUG_CHECK((delta->status == GIT_DELTA_MODIFIED) || (delta->status == GIT_DELTA_RENAMED) || (delta->status == GIT_DELTA_COPIED) || (delta->status == GIT_DELTA_TYPECHANGE) || (delta->status == GIT_DELTA_CONFLICTED));
+        GC_DEBUG_CHECK((delta->status == GIT_DELTA_MODIFIED) || (delta->status == GIT_DELTA_RENAMED) || (delta->status == GIT_DELTA_COPIED) || (delta->status == GIT_DELTA_TYPECHANGE) || (delta->status == GIT_DELTA_CONFLICTED));
         _oldFile = [[GCDiffFile alloc] initWithDiffFile:&delta->old_file];
         _newFile = [[GCDiffFile alloc] initWithDiffFile:&delta->new_file];
       }
     }
     _canonicalPath = _newFile ? _newFile.path : _oldFile.path;
     if (_canonicalPath == nil) {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       return nil;
     }
     _options = diff.options;
@@ -249,7 +249,7 @@ static inline GCFileDiffChange _FileDiffChangeFromStatus(git_delta_t status) {
     case kGCFileDiffChange_Conflicted:
       return GC_FILE_MODE_IS_SUBMODULE(_newFile.mode);
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return NO;
 }
 
@@ -350,8 +350,8 @@ static inline BOOL _EqualDeltas(const git_diff_delta* delta1, const git_diff_del
           }
         }
       } else {
-        XLOG_WARNING(@"Invalid delta generated for diff in repository \"%@\"", _repository.repositoryPath);
-        XLOG_DEBUG_UNREACHABLE();
+        os_log(OS_LOG_DEFAULT, "Invalid delta generated for diff in repository \"%@\"", _repository.repositoryPath);
+        GC_DEBUG_UNREACHABLE();
       }
     }
   }

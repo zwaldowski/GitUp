@@ -32,7 +32,7 @@
   NSMutableArray* array = [NSMutableArray arrayWithArray:[super testInvocations]];
   NSString* folder = [[@__FILE__ stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"GIGraph-Tests"];
   NSArray* files = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:folder error:NULL];
-  XLOG_DEBUG_CHECK(files);
+  GC_DEBUG_CHECK(files);
   for (NSString* file in files) {
     if (![file.pathExtension isEqualToString:@"txt"]) {
       continue;

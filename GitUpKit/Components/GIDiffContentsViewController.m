@@ -22,7 +22,6 @@
 #import "GIInterface.h"
 #import "GIViewController+Utilities.h"
 #import "GCRepository+Index.h"
-#import "XLFacilityMacros.h"
 
 #define kMinSplitDiffViewWidth 1000
 
@@ -366,7 +365,7 @@ static NSColor* _DimColor(NSColor* color) {
           BOOL isBinary;
           GCDiffPatch* patch = [self.repository makePatchForDiffDelta:delta isBinary:&isBinary error:&error];
           if (patch) {
-            XLOG_DEBUG_CHECK(!isBinary || patch.empty);
+            GC_DEBUG_CHECK(!isBinary || patch.empty);
             if (patch.empty) {
               data.empty = !isBinary;
             } else {
@@ -517,8 +516,8 @@ static inline NSString* _StringFromFileMode(GCFileMode mode) {
   if (row % 2) {
     if (data.diffView) {
       GITextDiffCellView* view = [_tableView makeViewWithIdentifier:@"text" owner:self];
-      XLOG_DEBUG_CHECK(view.diffView == nil);
-      XLOG_DEBUG_CHECK(data.diffView.superview == nil);
+      GC_DEBUG_CHECK(view.diffView == nil);
+      GC_DEBUG_CHECK(data.diffView.superview == nil);
       data.diffView.frame = view.bounds;
       data.diffView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
       [view addSubview:data.diffView];
@@ -531,7 +530,7 @@ static inline NSString* _StringFromFileMode(GCFileMode mode) {
       NSString* status = nil;
       switch (data.conflict.status) {
         case kGCIndexConflictStatus_None:
-          XLOG_DEBUG_UNREACHABLE();
+          GC_DEBUG_UNREACHABLE();
           break;
         case kGCIndexConflictStatus_BothModified:
           status = NSLocalizedString(@"both modified", nil);
@@ -623,7 +622,7 @@ static inline NSString* _StringFromFileMode(GCFileMode mode) {
 
       default:
         view.imageView.image = nil;
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
         break;
     }
   }
@@ -695,7 +694,7 @@ static inline NSString* _StringFromFileMode(GCFileMode mode) {
           [headerView setActionButtonLabel:[_delegate diffContentsViewController:self actionButtonLabelForDelta:data.delta conflict:data.conflict]];
         }
       } else {
-        XLOG_DEBUG_UNREACHABLE();
+        GC_DEBUG_UNREACHABLE();
       }
       break;
     }
@@ -711,7 +710,7 @@ static inline NSString* _StringFromFileMode(GCFileMode mode) {
 - (IBAction)showActionMenu:(id)sender {
   GIDiffContentData* data = (__bridge GIDiffContentData*)(void*)[(NSButton*)sender tag];
   GIHeaderDiffCellView* headerView = (GIHeaderDiffCellView*)[(NSButton*)sender superview];
-  XLOG_DEBUG_CHECK([headerView isKindOfClass:[GIHeaderDiffCellView class]]);
+  GC_DEBUG_CHECK([headerView isKindOfClass:[GIHeaderDiffCellView class]]);
   NSMenu* menu = [_delegate diffContentsViewController:self willShowContextualMenuForDelta:data.delta conflict:data.conflict];
   NSPoint point = headerView.menuButton.frame.origin;
   [menu popUpMenuPositioningItem:nil atLocation:NSMakePoint(point.x + kContextualMenuOffsetX, point.y + kContextualMenuOffsetY) inView:headerView];

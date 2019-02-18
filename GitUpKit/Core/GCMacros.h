@@ -14,6 +14,45 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #import <stdlib.h>
+#import <os/log.h>
+
+#pragma mark - GCLog
+
+#if DEBUG
+#define GC_LOG_ASSERT os_log_create("co.gitup.kit", "Assert")
+#else
+#define GC_LOG_ASSERT OS_LOG_DISABLED
+#endif
+
+#define GC_ABORT(format, ...) \
+  do { \
+    os_log_error(GC_LOG_ASSERT, format, ##__VA_ARGS__); \
+    abort(); \
+  } while (0)
+
+#define GC_CHECK(__CONDITION__) \
+  do { \
+    if (!(__CONDITION__)) { \
+      GC_ABORT("Precondition check failed: \"%s\"", #__CONDITION__); \
+    } \
+  } while (0)
+
+#define GC_UNREACHABLE() \
+  GC_ABORT("Unreachable code executed in '%s'", __FUNCTION__)
+
+#if DEBUG
+#define GC_DEBUG_CHECK(__CONDITION__) \
+  do { \
+    if (!(__CONDITION__)) { \
+      GC_ABORT("Assertion failed: \"%s\"", #__CONDITION__); \
+    } \
+  } while (0)
+#define GC_DEBUG_UNREACHABLE() \
+  GC_UNREACHABLE()
+#else
+#define GC_DEBUG_CHECK(__CONDITION__)
+#define GC_DEBUG_UNREACHABLE()
+#endif
 
 #pragma mark - GCItemList
 

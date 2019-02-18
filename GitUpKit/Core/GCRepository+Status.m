@@ -106,7 +106,7 @@ static int _DiffNotifyCallback(const git_diff* diff_so_far, const git_diff_delta
       if (delta_status == GIT_DELTA_UNTRACKED) {
         GC_SET_ERROR(kGCErrorCode_RepositoryDirty, @"Working directory contains untracked files");
       } else {
-        XLOG_DEBUG_CHECK(delta_status != GIT_DELTA_UNMODIFIED);
+        GC_DEBUG_CHECK(delta_status != GIT_DELTA_UNMODIFIED);
         GC_SET_ERROR(kGCErrorCode_RepositoryDirty, @"Working directory contains modified files");
       }
       goto cleanup;

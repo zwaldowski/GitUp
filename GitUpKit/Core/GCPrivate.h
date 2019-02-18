@@ -30,7 +30,6 @@
 
 #import "GCCore.h"
 
-#import "XLFacilityMacros.h"
 
 #define kRefsNamespace "refs/"
 #define kTagsNamespace "refs/tags/"
@@ -45,10 +44,10 @@ static inline NSString* GetLastGitErrorMessage() {
   return __git_error && __git_error->message ? [NSString stringWithUTF8String:__git_error->message] : @"<Unknown error>";
 }
 
-#define LOG_LIBGIT2_ERROR(__CODE__)                                            \
-  do {                                                                         \
-    XLOG_DEBUG_CHECK(__CODE__ != GIT_OK);                                      \
-    XLOG_ERROR(@"libgit2 error (%i): %@", __CODE__, GetLastGitErrorMessage()); \
+#define LOG_LIBGIT2_ERROR(__CODE__)                                                             \
+  do {                                                                                          \
+    GC_DEBUG_CHECK(__CODE__ != GIT_OK);                                                         \
+    os_log_error(OS_LOG_DEFAULT, "libgit2 error (%i): %@", __CODE__, GetLastGitErrorMessage()); \
   } while (0)
 
 #ifdef __clang_analyzer__

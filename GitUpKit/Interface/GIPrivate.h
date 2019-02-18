@@ -15,7 +15,6 @@
 
 #import "GIInterface.h"
 
-#import "XLFacilityMacros.h"
 
 #if __GI_HAS_APPKIT__
 

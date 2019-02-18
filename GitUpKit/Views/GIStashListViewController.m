@@ -22,7 +22,6 @@
 #import "GIWindowController.h"
 
 #import "GIInterface.h"
-#import "XLFacilityMacros.h"
 
 #define kUserDefaultsPrefix @"GIStashListViewController_"
 #define kUserDefaultsKey_SkipApplyWarning kUserDefaultsPrefix "SkipApplyWarning"
@@ -84,7 +83,7 @@
 }
 
 - (void)viewWillShow {
-  XLOG_DEBUG_CHECK(self.repository.stashesEnabled == NO);
+  GC_DEBUG_CHECK(self.repository.stashesEnabled == NO);
   self.repository.stashesEnabled = YES;
 
   [self _reloadStashes];
@@ -94,7 +93,7 @@
   _stashes = nil;
   [_tableView reloadData];
 
-  XLOG_DEBUG_CHECK(self.repository.stashesEnabled == YES);
+  GC_DEBUG_CHECK(self.repository.stashesEnabled == YES);
   self.repository.stashesEnabled = NO;
 }
 
@@ -195,7 +194,7 @@
     [[NSPasteboard generalPasteboard] declareTypes:@[ NSPasteboardTypeString ] owner:nil];
     [[NSPasteboard generalPasteboard] setString:[NSString stringWithFormat:@"stash@{%li}", row] forType:NSPasteboardTypeString];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -314,7 +313,7 @@
       [self presentError:error];
     }
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 

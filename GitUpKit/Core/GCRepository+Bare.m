@@ -294,7 +294,7 @@ cleanup:
       newCommit = [self createCommitFromCommit:replayCommit.private withTree:mergeTree updatedMessage:message updatedParents:parents updateCommitter:updateCommitter error:error];
     } else {
       newCommit = ontoCommit;
-      XLOG_VERBOSE(@"Skipping replay of already applied commit \"%@\" (%@) onto commit \"%@\" (%@)", replayCommit.summary, replayCommit.shortSHA1, ontoCommit.summary, ontoCommit.shortSHA1);
+      os_log_debug(OS_LOG_DEFAULT, "Skipping replay of already applied commit \"%@\" (%@) onto commit \"%@\" (%@)", replayCommit.summary, replayCommit.shortSHA1, ontoCommit.summary, ontoCommit.shortSHA1);
     }
   }
 
@@ -326,7 +326,7 @@ cleanup:
     [stack insertObject:@[ walkCommit, parents ] atIndex:0];
     walkCommit = parents.firstObject;  // Follow main line
     if (walkCommit == nil) {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       GC_SET_GENERIC_ERROR(@"Unable to reach ancestor commit");
       return nil;
     }
@@ -450,7 +450,7 @@ static const git_oid* _CommitParentCallback_Commit(size_t idx, void* payload) {
                              git_tree_id(tree),
                              parents ? _CommitParentCallback_Parents : _CommitParentCallback_Commit, parents ? (__bridge void*)parents : (void*)commit);
   CALL_LIBGIT2_FUNCTION_GOTO(cleanup, git_commit_lookup, &newCommit, self.private, &oid);
-  XLOG_DEBUG_CHECK(!git_oid_equal(git_commit_id(newCommit), git_commit_id(commit)));
+  GC_DEBUG_CHECK(!git_oid_equal(git_commit_id(newCommit), git_commit_id(commit)));
 
 cleanup:
   git_signature_free(signature);

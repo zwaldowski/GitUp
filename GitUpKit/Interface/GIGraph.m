@@ -155,7 +155,7 @@ static void _ReleaseCallBack(CFAllocatorRef allocator, const void* value) {
   }
 
   // Verify all leaves are included in tips
-  XLOG_DEBUG_CHECK([[NSSet setWithArray:_history.leafCommits] isSubsetOfSet:[NSSet setWithArray:tips.objects]]);
+  GC_DEBUG_CHECK([[NSSet setWithArray:_history.leafCommits] isSubsetOfSet:[NSSet setWithArray:tips.objects]]);
 
   // Remove stale branch tips if needed
   if (_options & kGIGraphOption_SkipStaleBranchTips) {
@@ -228,7 +228,7 @@ static void _ReleaseCallBack(CFAllocatorRef allocator, const void* value) {
 
           // If updating tips, make sure HEAD or references that are not leaves are not skipped
           if (updateTips) {
-            XLOG_DEBUG_CHECK(!parent.leaf);
+            GC_DEBUG_CHECK(!parent.leaf);
             if ([headCommit isEqualToCommit:parent]) {
               [tips addObject:parent];
               continue;
@@ -279,8 +279,8 @@ static void _ReleaseCallBack(CFAllocatorRef allocator, const void* value) {
 
           // Skip commit if applicable
           if (skip) {
-            XLOG_DEBUG_CHECK(!updateTips || ![tips containsObject:parent]);
-            XLOG_DEBUG_CHECK(!GC_POINTER_LIST_CONTAINS(newSkipList, parent));
+            GC_DEBUG_CHECK(!updateTips || ![tips containsObject:parent]);
+            GC_DEBUG_CHECK(!GC_POINTER_LIST_CONTAINS(newSkipList, parent));
             GC_POINTER_LIST_APPEND(newSkipList, parent);
             COMMIT_SKIPPED(parent) = YES;
           }
@@ -379,7 +379,7 @@ static void _ReleaseCallBack(CFAllocatorRef allocator, const void* value) {
       // Iterate over nodes from previous layer
       for (GINode* previousNode in previousLayer.nodes) {
         GINode* (^nodeBlock)(GILine*, GCHistoryCommit*, GCHistoryCommit*) = ^(GILine* line, GCHistoryCommit* commit, GCHistoryCommit* alternateCommit) {
-          XLOG_DEBUG_CHECK(!MAP_COMMIT_TO_NODE(commit));
+          GC_DEBUG_CHECK(!MAP_COMMIT_TO_NODE(commit));
 
           // Check if this commit is "ready" to be a node i.e. all its children have non-dummy nodes associated (but not on the current layer)
           BOOL ready = YES;
@@ -414,10 +414,10 @@ static void _ReleaseCallBack(CFAllocatorRef allocator, const void* value) {
         GCHistoryCommit* commit = previousNode.commit;
         GILine* line = previousNode.primaryLine;
         if (previousNode.dummy) {
-          XLOG_DEBUG_CHECK(!skipped || !COMMIT_SKIPPED(commit));
+          GC_DEBUG_CHECK(!skipped || !COMMIT_SKIPPED(commit));
           GINode* node = MAP_COMMIT_TO_NODE(commit);  // Check if commit has already been reprocessed
           if (node) {
-            XLOG_DEBUG_CHECK(node.layer == layer);
+            GC_DEBUG_CHECK(node.layer == layer);
             [line addNode:node];
             [previousNode addParent:node];
           } else {
@@ -429,7 +429,7 @@ static void _ReleaseCallBack(CFAllocatorRef allocator, const void* value) {
         else {
           NSUInteger index = 0;
           for (GCHistoryCommit* parent in commit.parents) {
-            XLOG_DEBUG_CHECK(!skipped || !COMMIT_SKIPPED(parent));
+            GC_DEBUG_CHECK(!skipped || !COMMIT_SKIPPED(parent));
             GINode* node = MAP_COMMIT_TO_NODE(parent);  // Check if commit has already been processed
             GILine* parentLine = line;
             if (index) {  // Start a new line if not the first parent
@@ -443,7 +443,7 @@ static void _ReleaseCallBack(CFAllocatorRef allocator, const void* value) {
               parentLine = newLine;
             }
             if (node) {
-              XLOG_DEBUG_CHECK(node.layer == layer);
+              GC_DEBUG_CHECK(node.layer == layer);
               [parentLine addNode:node];
               [previousNode addParent:node];
             } else {
@@ -475,7 +475,7 @@ static void _ReleaseCallBack(CFAllocatorRef allocator, const void* value) {
           break;
         }
       }
-      XLOG_DEBUG_CHECK(found);
+      GC_DEBUG_CHECK(found);
 #endif
 
       // Save new layer
@@ -588,28 +588,28 @@ cleanup:
   // Validate nodes - TODO: Find a way to validate "alternateCommit"
   for (CFIndex i = 0, count = CFArrayGetCount(_nodes); i < count; ++i) {
     GINode* node = CFArrayGetValueAtIndex(_nodes, i);
-    XLOG_DEBUG_CHECK(node.layer);
-    XLOG_DEBUG_CHECK(node.primaryLine);
-    XLOG_DEBUG_CHECK(node.commit);
-    XLOG_DEBUG_CHECK((node.dummy && (node.parentCount == 1)) || (!node.dummy && (node.parentCount == node.commit.parents.count)));
+    GC_DEBUG_CHECK(node.layer);
+    GC_DEBUG_CHECK(node.primaryLine);
+    GC_DEBUG_CHECK(node.commit);
+    GC_DEBUG_CHECK((node.dummy && (node.parentCount == 1)) || (!node.dummy && (node.parentCount == node.commit.parents.count)));
   }
 
   // Validate lines
   for (CFIndex i = 0, count = CFArrayGetCount(_lines); i < count; ++i) {
     GILine* line = CFArrayGetValueAtIndex(_lines, i);
-    XLOG_DEBUG_CHECK(line.branch);
+    GC_DEBUG_CHECK(line.branch);
     NSArray* nodes = line.nodes;
-    XLOG_DEBUG_CHECK(nodes.count >= 1);
-    XLOG_DEBUG_CHECK(![(GINode*)nodes.firstObject isDummy] || ![[(GINode*)nodes.firstObject commit] isLeaf]);
-    XLOG_DEBUG_CHECK(![(GINode*)nodes.lastObject isDummy]);
+    GC_DEBUG_CHECK(nodes.count >= 1);
+    GC_DEBUG_CHECK(![(GINode*)nodes.firstObject isDummy] || ![[(GINode*)nodes.firstObject commit] isLeaf]);
+    GC_DEBUG_CHECK(![(GINode*)nodes.lastObject isDummy]);
     for (NSUInteger i2 = 0, count2 = nodes.count; i2 < count2; ++i2) {
       GINode* node = nodes[i2];
       if (i2 == 0) {
-        XLOG_DEBUG_CHECK(node.commit.hasReferences || node.commit.leaf || (node.primaryLine == line.childLine) || [_history.HEADCommit isEqualToCommit:node.commit]);
+        GC_DEBUG_CHECK(node.commit.hasReferences || node.commit.leaf || (node.primaryLine == line.childLine) || [_history.HEADCommit isEqualToCommit:node.commit]);
       } else if (i2 == count2 - 1) {
-        XLOG_DEBUG_CHECK(node.commit.root || (node.primaryLine == line.parentLine));
+        GC_DEBUG_CHECK(node.commit.root || (node.primaryLine == line.parentLine));
       } else {
-        XLOG_DEBUG_CHECK(node.primaryLine == line);
+        GC_DEBUG_CHECK(node.primaryLine == line);
       }
     }
   }
@@ -617,23 +617,23 @@ cleanup:
   // Validate branches
   for (CFIndex i = 0, count = CFArrayGetCount(_branches); i < count; ++i) {
     GIBranch* branch = CFArrayGetValueAtIndex(_branches, i);
-    XLOG_DEBUG_CHECK(branch.mainLine);
-    XLOG_DEBUG_CHECK(branch.mainLine.branch == branch);
+    GC_DEBUG_CHECK(branch.mainLine);
+    GC_DEBUG_CHECK(branch.mainLine.branch == branch);
   }
 
   // Validate layers - TODO: Find a way to validate lines in layers
   for (CFIndex i = 0, count = CFArrayGetCount(_layers); i < count; ++i) {
     GILayer* layer = CFArrayGetValueAtIndex(_layers, i);
-    XLOG_DEBUG_CHECK(layer.index == (NSUInteger)i);
-    XLOG_DEBUG_CHECK(layer.nodes.count >= 1);
-    XLOG_DEBUG_CHECK([[NSSet setWithArray:layer.lines] count] == layer.lines.count);
+    GC_DEBUG_CHECK(layer.index == (NSUInteger)i);
+    GC_DEBUG_CHECK(layer.nodes.count >= 1);
+    GC_DEBUG_CHECK([[NSSet setWithArray:layer.lines] count] == layer.lines.count);
   }
 
   // Make sure HEAD has an associated non-dummy node
   if (_history.HEADCommit) {
     GINode* node = MAP_COMMIT_TO_NODE(_history.HEADCommit);
     if (node) {
-      XLOG_DEBUG_CHECK(!node.dummy);
+      GC_DEBUG_CHECK(!node.dummy);
     }
   }
 
@@ -648,12 +648,12 @@ cleanup:
   for (GCHistoryCommit* commit in _history.allCommits) {
     GINode* node = MAP_COMMIT_TO_NODE(commit);
     if (node) {
-      XLOG_DEBUG_CHECK(!node.dummy);
-      XLOG_DEBUG_CHECK(node.commit == commit);
+      GC_DEBUG_CHECK(!node.dummy);
+      GC_DEBUG_CHECK(node.commit == commit);
       [orphanNodes removeObject:node];
     }
   }
-  XLOG_DEBUG_CHECK(orphanNodes.count == 0);
+  GC_DEBUG_CHECK(orphanNodes.count == 0);
 
   // Make sure global node list matches all line nodes
   NSMutableSet* lineNodes = [NSMutableSet setWithCapacity:CFArrayGetCount(_nodes)];
@@ -661,7 +661,7 @@ cleanup:
     GILine* line = CFArrayGetValueAtIndex(_lines, i);
     [lineNodes addObjectsFromArray:line.nodes];
   }
-  XLOG_DEBUG_CHECK([lineNodes isEqualToSet:[NSSet setWithArray:(NSArray*)_nodes]]);
+  GC_DEBUG_CHECK([lineNodes isEqualToSet:[NSSet setWithArray:(NSArray*)_nodes]]);
 
   // Make sure global node list matches all layer nodes
   NSMutableSet* layerNodes = [NSMutableSet setWithCapacity:CFArrayGetCount(_nodes)];
@@ -669,7 +669,7 @@ cleanup:
     GILayer* layer = CFArrayGetValueAtIndex(_layers, i);
     [layerNodes addObjectsFromArray:layer.nodes];
   }
-  XLOG_DEBUG_CHECK([layerNodes isEqualToSet:[NSSet setWithArray:(NSArray*)_nodes]]);
+  GC_DEBUG_CHECK([layerNodes isEqualToSet:[NSSet setWithArray:(NSArray*)_nodes]]);
 
   // Make sure all lines are a hierarchy of nodes and end with a non-dummy node
   for (CFIndex i = 0, count = CFArrayGetCount(_lines); i < count; ++i) {
@@ -686,9 +686,9 @@ cleanup:
         ++index;
         nextNode = nodes[index];
       } while (nextNode.dummy);
-      XLOG_DEBUG_CHECK([node.commit.parents containsObject:nextNode.commit]);
+      GC_DEBUG_CHECK([node.commit.parents containsObject:nextNode.commit]);
     }
-    XLOG_DEBUG_CHECK(![(GINode*)line.nodes.lastObject isDummy]);
+    GC_DEBUG_CHECK(![(GINode*)line.nodes.lastObject isDummy]);
   }
 }
 
@@ -700,7 +700,7 @@ cleanup:
     for (GINode* node in layer.nodes) {
       [set addObject:@(node.x)];
     }
-    XLOG_DEBUG_CHECK(set.count == layer.nodes.count);
+    GC_DEBUG_CHECK(set.count == layer.nodes.count);
   }
 
   // Make sure children nodes are above parent nodes
@@ -710,7 +710,7 @@ cleanup:
       for (GCHistoryCommit* childCommit in commit.children) {
         GINode* childNode = MAP_COMMIT_TO_NODE(childCommit);
         if (childNode) {
-          XLOG_DEBUG_CHECK(childNode.layer.y < node.layer.y);
+          GC_DEBUG_CHECK(childNode.layer.y < node.layer.y);
         }
       }
     }
@@ -720,11 +720,11 @@ cleanup:
   for (CFIndex i = 0, count = CFArrayGetCount(_lines); i < count; ++i) {
     GILine* line = CFArrayGetValueAtIndex(_lines, i);
 #if __GI_HAS_APPKIT__
-    XLOG_DEBUG_CHECK(line.color);
+    GC_DEBUG_CHECK(line.color);
 #endif
     CGFloat lastY = -HUGE_VAL;
     for (GINode* node in line.nodes) {
-      XLOG_DEBUG_CHECK(node.layer.y > lastY);
+      GC_DEBUG_CHECK(node.layer.y > lastY);
       lastY = node.layer.y;
     }
   }
@@ -733,7 +733,7 @@ cleanup:
 #endif
 
 - (GINode*)nodeForCommit:(GCHistoryCommit*)commit {
-  XLOG_DEBUG_CHECK(commit);
+  GC_DEBUG_CHECK(commit);
   return MAP_COMMIT_TO_NODE(commit);
 }
 
@@ -778,7 +778,7 @@ cleanup:
     GC_POINTER_LIST_FOR_LOOP(row, GINode*, previousNode) {
       for (NSUInteger i = 0, count = previousNode.parentCount; i < count; ++i) {
         GINode* parent = [previousNode parentAtIndex:i];
-        XLOG_DEBUG_CHECK(parent.layer == layer);
+        GC_DEBUG_CHECK(parent.layer == layer);
         if (!GC_POINTER_LIST_CONTAINS(tempRow, parent)) {
           BOOL stop = NO;
           nodeBlock(layer, parent, &stop);

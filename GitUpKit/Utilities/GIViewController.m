@@ -23,7 +23,6 @@
 #import "GIWindowController.h"
 
 #import "GIInterface.h"
-#import "XLFacilityMacros.h"
 
 @interface GIView ()
 @property(nonatomic, assign) GIViewController* viewController;
@@ -149,7 +148,7 @@
 }
 
 - (void)loadView {
-  XLOG_DEBUG_CHECK(!self.nibBundle && !self.nibName);
+  GC_DEBUG_CHECK(!self.nibBundle && !self.nibName);
   Class nibClass = self.class;
   while (nibClass) {
     if ([[NSBundle bundleForClass:nibClass] loadNibNamed:NSStringFromClass(nibClass) owner:self topLevelObjects:NULL]) {
@@ -157,7 +156,7 @@
     }
     nibClass = nibClass.superclass;
   }
-  XLOG_DEBUG_CHECK(self.view);
+  GC_DEBUG_CHECK(self.view);
 }
 
 // Override super method so that the NSUndoManager is guaranteed to be the same and always around even when view is not visible
@@ -178,7 +177,7 @@
   if ([controller isKindOfClass:[GIWindowController class]]) {
     return controller;
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return nil;
 }
 
@@ -310,7 +309,7 @@ static NSView* _PreferredFirstResponder(NSView* containerView) {
 
 - (NSView*)preferredFirstResponder {
   NSView* view = _PreferredFirstResponder(self.view);
-  XLOG_DEBUG_CHECK(view);
+  GC_DEBUG_CHECK(view);
   return view;
 }
 

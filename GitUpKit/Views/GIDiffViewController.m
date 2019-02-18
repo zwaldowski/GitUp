@@ -22,7 +22,6 @@
 #import "GIDiffFilesViewController.h"
 
 #import "GIInterface.h"
-#import "XLFacilityMacros.h"
 
 @interface GIDiffViewController () <GIDiffContentsViewControllerDelegate, GIDiffFilesViewControllerDelegate>
 @property(nonatomic, weak) IBOutlet NSView* contentsView;

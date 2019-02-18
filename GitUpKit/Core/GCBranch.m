@@ -27,7 +27,7 @@
 #if DEBUG
 
 - (void)updateReference:(git_reference*)reference {
-  XLOG_DEBUG_CHECK(git_reference_is_branch(reference));
+  GC_DEBUG_CHECK(git_reference_is_branch(reference));
   [super updateReference:reference];
 }
 
@@ -40,7 +40,7 @@
 #if DEBUG
 
 - (void)updateReference:(git_reference*)reference {
-  XLOG_DEBUG_CHECK(git_reference_is_remote(reference));
+  GC_DEBUG_CHECK(git_reference_is_remote(reference));
   [super updateReference:reference];
 }
 
@@ -180,7 +180,7 @@
   }
   git_reference_free(upstream);
   GC_SET_GENERIC_ERROR(@"Unexpected branch upstream");
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return nil;
 }
 

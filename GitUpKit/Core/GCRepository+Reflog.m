@@ -32,7 +32,7 @@ static inline GCCommit* _LoadCommit(GCRepository* repository, const git_oid* oid
   git_commit* commit;
   int status = git_commit_lookup(&commit, repository.private, oid);
   if (status != GIT_OK) {
-    XLOG_WARNING(@"Unable to find commit %s in \"%@\" (%i): %@", git_oid_tostr_s(oid), repository.repositoryPath, status, GetLastGitErrorMessage());
+    os_log(OS_LOG_DEFAULT, "Unable to find commit %s in \"%@\" (%i): %@", git_oid_tostr_s(oid), repository.repositoryPath, status, GetLastGitErrorMessage());
     return nil;
   }
   return [[GCCommit alloc] initWithRepository:repository commit:commit];
@@ -52,7 +52,7 @@ static inline GCCommit* _LoadCommit(GCRepository* repository, const git_oid* oid
       _toSHA1 = [GCGitOIDToSHA1(&_toOID) retain];
       _toCommit = _LoadCommit(_repository, &_toOID);
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
     const git_signature* signature = git_reflog_entry_committer(entry);
     _time = signature->when;
@@ -158,14 +158,14 @@ static inline GCReflogActions _ActionsFromMessage(const char* message) {
 }
 
 - (void)addReference:(GCReference*)reference withMessage:(const char*)message {
-  XLOG_DEBUG_CHECK(reference.repository == _repository);
+  GC_DEBUG_CHECK(reference.repository == _repository);
   NSString* string = message ? [NSString stringWithUTF8String:message] : @"";
   NSUInteger index = [_references indexOfObject:reference];
   if (index == NSNotFound) {
     [_references addObject:reference];
     [_messages addObject:string];
   } else if (![_messages[index] isEqualToString:string]) {
-    XLOG_WARNING(@"Reflog for reference '%@' has mismatching entries", reference.name);
+    os_log(OS_LOG_DEFAULT, "Reflog for reference '%@' has mismatching entries", reference.name);
   }
   if (message && message[0]) {
     _actions |= _ActionsFromMessage(message);
@@ -274,9 +274,9 @@ static CFHashCode _EntryHashCallBack(const void* value) {
                                                    GCReflogEntry* reflogEntry = [[GCReflogEntry alloc] initWithRepository:self entry:entry];
                                                    GCReflogEntry* existingEntry = CFSetGetValue(cache, (const void*)reflogEntry);
                                                    if (existingEntry) {
-                                                     XLOG_DEBUG_CHECK([existingEntry.date isEqualToDate:reflogEntry.date]);
-                                                     XLOG_DEBUG_CHECK([existingEntry.committerName isEqualToString:reflogEntry.committerName]);
-                                                     XLOG_DEBUG_CHECK([existingEntry.committerEmail isEqualToString:reflogEntry.committerEmail]);
+                                                     GC_DEBUG_CHECK([existingEntry.date isEqualToDate:reflogEntry.date]);
+                                                     GC_DEBUG_CHECK([existingEntry.committerName isEqualToString:reflogEntry.committerName]);
+                                                     GC_DEBUG_CHECK([existingEntry.committerEmail isEqualToString:reflogEntry.committerEmail]);
                                                      [existingEntry addReference:reference withMessage:git_reflog_entry_message(entry)];
                                                    } else {
                                                      [reflogEntry addReference:reference withMessage:git_reflog_entry_message(entry)];

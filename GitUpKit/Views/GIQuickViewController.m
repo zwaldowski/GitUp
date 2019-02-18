@@ -23,7 +23,6 @@
 #import "GIViewController+Utilities.h"
 
 #import "GIInterface.h"
-#import "XLFacilityMacros.h"
 
 @interface GIQuickViewController () <GIDiffContentsViewControllerDelegate, GIDiffFilesViewControllerDelegate>
 @property(nonatomic, weak) IBOutlet NSView* infoView;
@@ -205,7 +204,7 @@ static NSString* _CleanUpCommitMessage(NSString* message) {
 }
 
 - (NSMenu*)diffContentsViewController:(GIDiffContentsViewController*)controller willShowContextualMenuForDelta:(GCDiffDelta*)delta conflict:(GCIndexConflict*)conflict {
-  XLOG_DEBUG_CHECK(conflict == nil);
+  GC_DEBUG_CHECK(conflict == nil);
   NSMenu* menu = [self contextualMenuForDelta:delta withConflict:nil allowOpen:NO];
 
   [menu addItem:[NSMenuItem separatorItem]];

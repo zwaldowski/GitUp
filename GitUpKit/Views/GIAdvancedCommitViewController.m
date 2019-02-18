@@ -24,7 +24,6 @@
 
 #import "GIInterface.h"
 #import "GIWindowController.h"
-#import "XLFacilityMacros.h"
 
 @interface GIAdvancedCommitViewController () <GIDiffFilesViewControllerDelegate, GIDiffContentsViewControllerDelegate>
 @property(nonatomic, weak) IBOutlet NSView* workdirFilesView;
@@ -73,7 +72,7 @@
 - (void)viewWillShow {
   [super viewWillShow];
 
-  XLOG_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Disabled);
+  GC_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Disabled);
   self.repository.statusMode = kGCLiveRepositoryStatusMode_Normal;
 
   [self _reloadContents];
@@ -93,7 +92,7 @@
   [_indexFilesViewController setDeltas:nil usingConflicts:nil];
   [_diffContentsViewController setDeltas:nil usingConflicts:nil];
 
-  XLOG_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Normal);
+  GC_DEBUG_CHECK(self.repository.statusMode == kGCLiveRepositoryStatusMode_Normal);
   self.repository.statusMode = kGCLiveRepositoryStatusMode_Disabled;
 }
 
@@ -180,7 +179,7 @@
       [_diffContentsViewController setDeltas:_indexFilesViewController.selectedDeltas usingConflicts:_indexConflicts];
       _indexActive = YES;
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
   }
 }
@@ -241,7 +240,7 @@
   } else if (controller == _indexFilesViewController) {
     [self _unstageSelectedFiles:_indexFilesViewController.selectedDeltas];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -273,7 +272,7 @@
       NSBeep();
     }
   } else {
-    XLOG_DEBUG_CHECK(controller == _indexFilesViewController);
+    GC_DEBUG_CHECK(controller == _indexFilesViewController);
     NSBeep();
   }
 }
@@ -304,7 +303,7 @@
   } else if (controller == _indexFilesViewController) {
     [self _unstageSelectedFiles:deltas];
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -350,7 +349,7 @@
     }
     return YES;
   } else {
-    XLOG_DEBUG_UNREACHABLE();
+    GC_DEBUG_UNREACHABLE();
   }
   return NO;
 }

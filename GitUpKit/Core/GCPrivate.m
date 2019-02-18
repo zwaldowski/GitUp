@@ -58,7 +58,7 @@
         _errorFileHandle = nil;
       }
     } else {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
     }
 
     if (data.length) {
@@ -84,17 +84,17 @@
 
   if (stdin) {
     inPipe = [[NSPipe alloc] init];
-    XLOG_DEBUG_CHECK(inPipe);
+    GC_DEBUG_CHECK(inPipe);
     task.standardInput = inPipe;
   }
   if (stdout) {
     outPipe = [[NSPipe alloc] init];
-    XLOG_DEBUG_CHECK(outPipe);
+    GC_DEBUG_CHECK(outPipe);
     task.standardOutput = outPipe;
   }
   if (stderr) {
     errorPipe = [[NSPipe alloc] init];
-    XLOG_DEBUG_CHECK(errorPipe);
+    GC_DEBUG_CHECK(errorPipe);
     task.standardError = errorPipe;
   }
 

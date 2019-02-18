@@ -22,7 +22,6 @@
 #import "GIWindowController.h"
 #import "GCRepository+Utilities.h"
 #import "GCHistory+Rewrite.h"
-#import "XLFacilityMacros.h"
 
 #define kUserDefaultsPrefix @"GIMapViewController_"
 #define kUserDefaultsKey_SkipPushTagWarning kUserDefaultsPrefix "SkipPushTagWarning"
@@ -80,7 +79,7 @@ static inline GIAlertType _AlertTypeForDangerousRemoteOperations() {
     case kGCCommitRelation_Ancestor:
       return [self _checkClean];
   }
-  XLOG_DEBUG_UNREACHABLE();
+  GC_DEBUG_UNREACHABLE();
   return NO;
 }
 
@@ -97,7 +96,7 @@ static inline GIAlertType _AlertTypeForDangerousRemoteOperations() {
   if (result != kGCMergeAnalysisResult_Unknown) {
     *ancestorCommit = [self.repository.history historyCommitForCommit:commit];
     if (*ancestorCommit == nil) {
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
       *error = GCNewError(kGCErrorCode_Generic, @"Missing history commit");
       result = kGCMergeAnalysisResult_Unknown;
     }
@@ -728,7 +727,7 @@ static inline GIAlertType _AlertTypeForDangerousRemoteOperations() {
   GCCommit* baseCommit = [self.repository findMergeBaseForCommits:@[ branch.tipCommit, commit ] error:&error];
   if (baseCommit) {
     GCHistoryCommit* fromCommit = [self.repository.history historyCommitForCommit:baseCommit];
-    XLOG_DEBUG_CHECK(fromCommit);
+    GC_DEBUG_CHECK(fromCommit);
     if ([fromCommit isEqualToCommit:commit]) {  // We are trying to rebase onto an ancestor so use branch point instead of common ancestor to rebase from
       GCHistoryCommit* parentCommit = branch.tipCommit.parents.firstObject;
       while (parentCommit) {
@@ -743,7 +742,7 @@ static inline GIAlertType _AlertTypeForDangerousRemoteOperations() {
         parentCommit = parentCommit.parents.firstObject;
       }
     } else {
-      XLOG_DEBUG_CHECK(![fromCommit isEqualToCommit:branch.tipCommit]);
+      GC_DEBUG_CHECK(![fromCommit isEqualToCommit:branch.tipCommit]);
     }
     [self rebaseLocalBranch:branch fromCommit:fromCommit ontoCommit:commit withUserMessage:userMessage];
   } else {
@@ -1092,7 +1091,7 @@ static inline GIAlertType _AlertTypeForDangerousRemoteOperations() {
                                          if (success) {
                                            GCHistoryCommit* branchCommit = branch.tipCommit;
                                            upstream = [self.repository.history historyRemoteBranchForRemoteBranch:upstream];  // We must refetch the branch from history as it has changed
-                                           XLOG_DEBUG_CHECK(upstream);
+                                           GC_DEBUG_CHECK(upstream);
                                            GCHistoryCommit* ancestorCommit;
                                            GCMergeAnalysisResult result = [self _analyzeMergingCommit:upstream.tipCommit intoCommit:branchCommit ancestorCommit:&ancestorCommit error:&error];
                                            switch (result) {

@@ -160,7 +160,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
               deletedRange = CFRangeMake(range.location + range.length, deletedRange.location + deletedRange.length - range.location - range.length);
             }
             deletedLine = [_lines objectAtIndex:deletedIndex++];
-            XLOG_DEBUG_CHECK(deletedLine.leftWrapped);
+            GC_DEBUG_CHECK(deletedLine.leftWrapped);
           }
           while (addedRange.length > 0) {
             CFRange range = CTLineGetStringRange(addedLine.rightLine);
@@ -173,7 +173,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
               addedRange = CFRangeMake(range.location + range.length, addedRange.location + addedRange.length - range.location - range.length);
             }
             addedLine = [_lines objectAtIndex:addedIndex++];
-            XLOG_DEBUG_CHECK(addedLine.rightWrapped);
+            GC_DEBUG_CHECK(addedLine.rightWrapped);
           }
           --addedCount;
         }
@@ -207,7 +207,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
           }
           if (string == nil) {
             string = @"<LINE IS NOT VALID UTF-8>\n";
-            XLOG_DEBUG_UNREACHABLE();
+            GC_DEBUG_UNREACHABLE();
           }
 
           switch (change) {
@@ -254,7 +254,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
 
               case kGCLineDiffChange_Deleted: {
                 if (lineIndex == NSNotFound) {
-                  XLOG_DEBUG_CHECK(!isWrappedLine);
+                  GC_DEBUG_CHECK(!isWrappedLine);
                   lineIndex = _lines.count;
                 }
                 GISplitDiffLine* diffLine = [[GISplitDiffLine alloc] initWithType:kDiffLineType_Change];
@@ -494,7 +494,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
 - (void)getSelectedText:(NSString**)text oldLines:(NSIndexSet**)oldLines newLines:(NSIndexSet**)newLines {
   if (text) {
     if (_selectedText.length > 0) {
-      XLOG_DEBUG_CHECK(!_selectedLines.count);
+      GC_DEBUG_CHECK(!_selectedLines.count);
       if (_selectedText.length == 1) {
         GISplitDiffLine* diffLine = _lines[_selectedText.location];
         NSString* string = _rightSelection ? diffLine.rightString : diffLine.leftString;
@@ -518,7 +518,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
       }
     }
     if (_selectedLines.count) {
-      XLOG_DEBUG_CHECK(!_selectedText.length);
+      GC_DEBUG_CHECK(!_selectedText.length);
       *text = [[NSMutableString alloc] init];
       NSUInteger lastLineNumber = NSNotFound;
       for (GISplitDiffLine* diffLine in _lines) {
@@ -608,14 +608,14 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
           break;
 
         case kSelectionMode_Replace: {
-          XLOG_DEBUG_CHECK(_selectedLines.count == 0);
+          GC_DEBUG_CHECK(_selectedLines.count == 0);
           [_selectedLines addIndex:index];
           _startLines = [_selectedLines copy];
           break;
         }
 
         case kSelectionMode_Extend: {
-          XLOG_DEBUG_CHECK(_selectedLines.count > 0);
+          GC_DEBUG_CHECK(_selectedLines.count > 0);
           _startLines = [_selectedLines copy];
           if (index > _startLines.lastIndex) {
             [_selectedLines addIndexesInRange:NSMakeRange(_startLines.lastIndex, index - _startLines.lastIndex + 1)];
@@ -708,7 +708,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
 
             case kSelectionMode_Replace:
             case kSelectionMode_Extend: {
-              XLOG_DEBUG_CHECK(_startLines.count > 0);
+              GC_DEBUG_CHECK(_startLines.count > 0);
               [_selectedLines removeAllIndexes];
               [_selectedLines addIndexes:_startLines];
               if (index > _startLines.lastIndex) {

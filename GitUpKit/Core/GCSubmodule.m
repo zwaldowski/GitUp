@@ -60,7 +60,7 @@ extern int git_path_make_relative(git_buf* path, const char* parent);  // SPI
       _ignoreMode = kGCSubmoduleIgnoreMode_All;
       break;
     case GIT_SUBMODULE_IGNORE_UNSPECIFIED:
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
   }
   switch (git_submodule_fetch_recurse_submodules(_private)) {
     case GIT_SUBMODULE_RECURSE_NO:
@@ -87,7 +87,7 @@ extern int git_path_make_relative(git_buf* path, const char* parent);  // SPI
       _updateMode = kGCSubmoduleUpdateMode_None;
       break;
     case GIT_SUBMODULE_UPDATE_DEFAULT:
-      XLOG_DEBUG_UNREACHABLE();
+      GC_DEBUG_UNREACHABLE();
   }
 }
 
@@ -176,7 +176,7 @@ cleanup:
 }
 
 - (BOOL)initializeSubmodule:(GCSubmodule*)submodule recursive:(BOOL)recursive error:(NSError**)error {
-  XLOG_DEBUG_CHECK(![self checkSubmoduleInitialized:submodule error:NULL]);
+  GC_DEBUG_CHECK(![self checkSubmoduleInitialized:submodule error:NULL]);
 
   NSString* modulePath = [[self.repositoryPath stringByAppendingPathComponent:@"modules"] stringByAppendingPathComponent:submodule.path];
   if ([[NSFileManager defaultManager] fileExistsAtPath:modulePath followLastSymlink:NO] && ![[NSFileManager defaultManager] removeItemAtPath:modulePath error:error]) {
@@ -289,7 +289,7 @@ cleanup:
       CALL_LIBGIT2_FUNCTION_GOTO(cleanup, git_repository_set_head_detached, subRepository, &entry->id);
       CALL_LIBGIT2_FUNCTION_GOTO(cleanup, git_submodule_reload, submodule.private, false);  // "force" argument is unused anyway!
       success = YES;
-      XLOG_VERBOSE(@"Updated submodule \"%@\" in \"%@\" in %.3f seconds", submodule.name, self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
+      os_log_debug(OS_LOG_DEFAULT, "Updated submodule \"%@\" in \"%@\" in %.3f seconds", submodule.name, self.repositoryPath, CFAbsoluteTimeGetCurrent() - time);
       break;
     }
 

@@ -19,7 +19,6 @@
 
 #import "GCRepository+Index.h"
 
-#import "XLFacilityMacros.h"
 
 @implementation GCRepository (Index)
 
