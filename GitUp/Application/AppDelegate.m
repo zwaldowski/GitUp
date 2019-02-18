@@ -27,7 +27,6 @@
 #import "Document.h"
 #import "Common.h"
 #import "ToolProtocol.h"
-#import "GARawTracker.h"
 
 #define __ENABLE_SUDDEN_TERMINATION__ 1
 
@@ -321,9 +320,6 @@
   [[BITHockeyManager sharedHockeyManager] setDisableMetricsManager:YES];
   [[BITHockeyManager sharedHockeyManager] setDisableFeedbackManager:YES];
   [[BITHockeyManager sharedHockeyManager] startManager];
-
-  // Initialize Google Analytics
-  [[GARawTracker sharedTracker] startWithTrackingID:@"UA-83409580-1"];
 #endif
 
   [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self
@@ -434,14 +430,6 @@
     _allowWelcome = 1;
   }
   [self handleDocumentCountChanged];
-
-#if !DEBUG
-  [[GARawTracker sharedTracker] sendEventWithCategory:@"application"
-                                               action:@"activate"
-                                                label:nil
-                                                value:nil
-                                      completionBlock:NULL];
-#endif
 }
 
 #if __ENABLE_SUDDEN_TERMINATION__

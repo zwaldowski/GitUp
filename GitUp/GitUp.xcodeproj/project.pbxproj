@@ -33,7 +33,6 @@
 		E2C338BF19F8562F00063D95 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = E2C338BD19F8562F00063D95 /* MainMenu.xib */; };
 		E2C338D719F85C2E00063D95 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2C338D619F85C2E00063D95 /* Cocoa.framework */; };
 		E2C5672D1A6D98BC00ECFE07 /* WindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = E2C5672C1A6D98BC00ECFE07 /* WindowController.m */; };
-		E2E3C9A01D771E7600AA9A62 /* GARawTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = E2E3C99F1D771E7600AA9A62 /* GARawTracker.m */; };
 		E2E3C9A21D771E9D00AA9A62 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2E3C9A11D771E9D00AA9A62 /* SystemConfiguration.framework */; };
 		E2E3C9A41D77227F00AA9A62 /* HockeySDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2E3C9A31D77227F00AA9A62 /* HockeySDK.framework */; };
 		E2E3C9A51D77228F00AA9A62 /* HockeySDK.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E2E3C9A31D77227F00AA9A62 /* HockeySDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -142,8 +141,6 @@
 		E2C5672C1A6D98BC00ECFE07 /* WindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WindowController.m; sourceTree = "<group>"; };
 		E2C8C91519FABC5100DA54AA /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/Document.xib; sourceTree = "<group>"; };
 		E2C8C91619FABC5100DA54AA /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		E2E3C99E1D771E7600AA9A62 /* GARawTracker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GARawTracker.h; sourceTree = "<group>"; };
-		E2E3C99F1D771E7600AA9A62 /* GARawTracker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GARawTracker.m; sourceTree = "<group>"; };
 		E2E3C9A11D771E9D00AA9A62 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		E2E3C9A31D77227F00AA9A62 /* HockeySDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HockeySDK.framework; path = "Third-Party/HockeySDK.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -233,7 +230,6 @@
 				E24306981B276D0B00CE8CCB /* ToolProtocol.h */,
 				E21DCAE91B253847006424E8 /* Tool */,
 				E2C338AD19F8562F00063D95 /* Application */,
-				E2E3C99D1D771E7600AA9A62 /* GARawTracker */,
 				E20A52341A80D1BF003546C3 /* Framework and Libraries */,
 				E27E37551B86F670000A551A /* Xcode-Configurations */,
 				E2C338AC19F8562F00063D95 /* Products */,
@@ -275,16 +271,6 @@
 				31CD50E2203E2E2800360B3A /* ToolbarItemWrapperView.m */,
 			);
 			path = Application;
-			sourceTree = "<group>";
-		};
-		E2E3C99D1D771E7600AA9A62 /* GARawTracker */ = {
-			isa = PBXGroup;
-			children = (
-				E2E3C99E1D771E7600AA9A62 /* GARawTracker.h */,
-				E2E3C99F1D771E7600AA9A62 /* GARawTracker.m */,
-			);
-			name = GARawTracker;
-			path = "Third-Party/GARawTracker/GARawTracker";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -421,7 +407,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E21739F71A5080DD00EC6777 /* DocumentController.m in Sources */,
-				E2E3C9A01D771E7600AA9A62 /* GARawTracker.m in Sources */,
 				E2C338B419F8562F00063D95 /* main.m in Sources */,
 				E2C5672D1A6D98BC00ECFE07 /* WindowController.m in Sources */,
 				E2C338B219F8562F00063D95 /* AppDelegate.m in Sources */,
