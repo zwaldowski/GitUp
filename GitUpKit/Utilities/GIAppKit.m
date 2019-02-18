@@ -27,9 +27,6 @@
 #define kSummaryMaxWidth 50
 #define kBodyMaxWidth 72
 
-@interface GILayoutManager : NSLayoutManager
-@end
-
 NSString* const GICommitMessageViewUserDefaultKey_ShowInvisibleCharacters = @"GICommitMessageViewUserDefaultKey_ShowInvisibleCharacters";
 NSString* const GICommitMessageViewUserDefaultKey_ShowMargins = @"GICommitMessageViewUserDefaultKey_ShowMargins";
 NSString* const GICommitMessageViewUserDefaultKey_EnableSpellChecking = @"GICommitMessageViewUserDefaultKey_EnableSpellChecking";
@@ -56,14 +53,14 @@ static NSColor* _separatorColor = nil;
 - (void)setType:(GIAlertType)type {
   switch (type) {
     case kGIAlertType_Note:
-      self.icon = [[NSBundle bundleForClass:[GILayoutManager class]] imageForResource:@"icon_alert_note"];
+      self.icon = [[NSBundle bundleForClass:[GITextView class]] imageForResource:@"icon_alert_note"];
       break;  // TODO: Image is not cached
     case kGIAlertType_Caution:
-      self.icon = [[NSBundle bundleForClass:[GILayoutManager class]] imageForResource:@"icon_alert_caution"];
+      self.icon = [[NSBundle bundleForClass:[GITextView class]] imageForResource:@"icon_alert_caution"];
       break;  // TODO: Image is not cached
     case kGIAlertType_Stop:
     case kGIAlertType_Danger:
-      self.icon = [[NSBundle bundleForClass:[GILayoutManager class]] imageForResource:@"icon_alert_stop"];
+      self.icon = [[NSBundle bundleForClass:[GITextView class]] imageForResource:@"icon_alert_stop"];
       break;  // TODO: Image is not cached
   }
 }
@@ -138,6 +135,10 @@ static NSColor* _separatorColor = nil;
 
 @end
 
+@interface GICommitMessageView () <NSLayoutManagerDelegate>
+
+@end
+
 @implementation GICommitMessageView
 
 - (void)dealloc {
@@ -159,7 +160,7 @@ static NSColor* _separatorColor = nil;
   self.automaticDataDetectionEnabled = NO;  // Don't trust IB
   self.automaticTextReplacementEnabled = NO;  // Don't trust IB
   self.smartInsertDeleteEnabled = YES;  // Don't trust IB
-  [self.textContainer replaceLayoutManager:[[GILayoutManager alloc] init]];
+  self.layoutManager.delegate = self;
 
   [[NSUserDefaults standardUserDefaults] addObserver:self forKeyPath:GICommitMessageViewUserDefaultKey_ShowInvisibleCharacters options:0 context:(__bridge void*)[GICommitMessageView class]];
   [[NSUserDefaults standardUserDefaults] addObserver:self forKeyPath:GICommitMessageViewUserDefaultKey_ShowMargins options:0 context:(__bridge void*)[GICommitMessageView class]];
@@ -203,8 +204,6 @@ static NSColor* _separatorColor = nil;
     if ([keyPath isEqualToString:GICommitMessageViewUserDefaultKey_ShowInvisibleCharacters]) {
       NSRange range = NSMakeRange(0, self.textStorage.length);
       [self.layoutManager invalidateGlyphsForCharacterRange:range changeInLength:0 actualCharacterRange:NULL];
-      [self.layoutManager invalidateLayoutForCharacterRange:range isSoft:NO actualCharacterRange:NULL];
-      [self setNeedsDisplay:YES];
     } else if ([keyPath isEqualToString:GICommitMessageViewUserDefaultKey_ShowMargins]) {
       [self setNeedsDisplay:YES];
     } else if ([keyPath isEqualToString:GICommitMessageViewUserDefaultKey_EnableSpellChecking]) {
@@ -219,6 +218,73 @@ static NSColor* _separatorColor = nil;
   } else {
     [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
   }
+}
+
+- (unichar)invisibleCharacterReplacementForCharacter:(unichar)character {
+  switch (character) {
+    case ' ':
+      // "·" MIDDLE DOT
+      return 0x00B7;
+    case '\n':
+      // "↵" DOWNWARDS ARROW WITH CORNER LEFTWARDS
+      return 0x21B5;
+    default:
+      return 0;
+  }
+}
+
+- (NSUInteger)layoutManager:(NSLayoutManager *)layoutManager shouldGenerateGlyphs:(const CGGlyph *)glyphs properties:(const NSGlyphProperty *)props characterIndexes:(const NSUInteger *)characterIndexes font:(NSFont *)font forGlyphRange:(NSRange)glyphRange {
+  if (![[NSUserDefaults standardUserDefaults] boolForKey:GICommitMessageViewUserDefaultKey_ShowInvisibleCharacters]) {
+    return 0;
+  }
+  
+  NSString* text = layoutManager.textStorage.string;
+  __block NSUInteger startOffset = 0;
+  
+  for (NSInteger offset = 0; offset < glyphRange.length; offset++) {
+    NSUInteger characterIndex = characterIndexes[offset];
+    unichar character = [text characterAtIndex:characterIndex];
+    unichar replacementCharacter = [self invisibleCharacterReplacementForCharacter:character];
+    if (replacementCharacter == 0) {
+      continue;
+    }
+
+    // commit all glyphs up until now
+    [layoutManager setGlyphs:glyphs + startOffset properties:props + startOffset characterIndexes:characterIndexes + startOffset font:font  forGlyphRange:NSMakeRange(glyphRange.location + startOffset, offset - startOffset)];
+
+    // attempt to fetch a glyph for our desired replacemet
+    CGGlyph replacementGlyph = kCGFontIndexInvalid;
+    NSGlyphProperty replacementProperty = 0;
+    if (!CTFontGetGlyphsForCharacters((__bridge CTFontRef)font, &replacementCharacter, &replacementGlyph, 1)) {
+      startOffset = offset;
+      continue;
+    }
+
+    // commit the replacement glyph
+    [layoutManager setGlyphs:&replacementGlyph properties:&replacementProperty characterIndexes:&characterIndex font:font forGlyphRange:NSMakeRange(glyphRange.location + offset, 1)];
+    startOffset = offset + 1;
+  }
+  
+  if (startOffset == 0) {
+    // If we ended up doing no work, tell the system it has to do its job.
+    return 0;
+  }
+  
+  // commit the remaider of the glyphs
+  [layoutManager setGlyphs:glyphs + startOffset properties:props + startOffset characterIndexes:characterIndexes + startOffset font:font  forGlyphRange:NSMakeRange(glyphRange.location + startOffset, glyphRange.length - startOffset)];
+
+  return glyphRange.length;
+}
+
+- (NSControlCharacterAction)layoutManager:(NSLayoutManager *)layoutManager shouldUseAction:(NSControlCharacterAction)action forControlCharacterAtIndex:(NSUInteger)characterIndex {
+  // `setNotShownAttribute:YES` is called after `shouldGenerateGlyphs`, when
+  // the line is getting finished. This method is the soonest opportunity we
+  // get to correct it.
+  if (action & NSControlCharacterActionLineBreak && [[NSUserDefaults standardUserDefaults] boolForKey:GICommitMessageViewUserDefaultKey_ShowInvisibleCharacters]) {
+    [layoutManager setNotShownAttribute:NO forGlyphAtIndex:[layoutManager glyphIndexForCharacterAtIndex:characterIndex]];
+  }
+  
+  return action;
 }
 
 @end
@@ -291,36 +357,6 @@ static NSColor* _separatorColor = nil;
   } else {
     [super keyDown:event];
   }
-}
-
-@end
-
-@implementation GILayoutManager
-
-- (void)drawGlyphsForGlyphRange:(NSRange)range atPoint:(NSPoint)point {
-  if ([[NSUserDefaults standardUserDefaults] boolForKey:GICommitMessageViewUserDefaultKey_ShowInvisibleCharacters]) {
-    NSTextStorage* storage = self.textStorage;
-    NSString* string = storage.string;
-    for (NSUInteger glyphIndex = range.location; glyphIndex < range.location + range.length; ++glyphIndex) {
-      NSUInteger characterIndex = [self characterIndexForGlyphAtIndex:glyphIndex];
-      switch ([string characterAtIndex:characterIndex]) {
-        case ' ': {
-          NSFont* font = [storage attribute:NSFontAttributeName atIndex:characterIndex effectiveRange:NULL];
-          XLOG_DEBUG_CHECK([font.fontName isEqualToString:@"Menlo-Regular"]);
-          [self replaceGlyphAtIndex:glyphIndex withGlyph:[font glyphWithName:@"periodcentered"]];
-          break;
-        }
-
-        case '\n': {
-          NSFont* font = [storage attribute:NSFontAttributeName atIndex:characterIndex effectiveRange:NULL];
-          XLOG_DEBUG_CHECK([font.fontName isEqualToString:@"Menlo-Regular"]);
-          [self replaceGlyphAtIndex:glyphIndex withGlyph:[font glyphWithName:@"carriagereturn"]];
-          break;
-        }
-      }
-    }
-  }
-  [super drawGlyphsForGlyphRange:range atPoint:point];
 }
 
 @end
