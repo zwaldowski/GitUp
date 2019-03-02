@@ -32,13 +32,13 @@ typedef NS_OPTIONS(NSUInteger, GIGraphOptions) {
 @property(nonatomic, readonly) GIGraphOptions options;
 @property(nonatomic, readonly, getter=isEmpty) BOOL empty;
 
-@property(nonatomic, readonly) NSArray* branches;
-@property(nonatomic, readonly) NSArray* layers;
-@property(nonatomic, readonly) NSArray* lines;
-@property(nonatomic, readonly) NSArray* nodes;
+@property(nonatomic, readonly) NSArray<GIBranch*>* branches;
+@property(nonatomic, readonly) NSArray<GILayer*>* layers;
+@property(nonatomic, readonly) NSArray<GILine*>* lines;
+@property(nonatomic, readonly) NSArray<GINode*>* nodes;
 
 @property(nonatomic, readonly) NSUInteger numberOfDummyNodes;
-@property(nonatomic, readonly) NSArray* nodesWithReferences;
+@property(nonatomic, readonly) NSArray<GINode*>* nodesWithReferences;
 @property(nonatomic, readonly) CGSize size;
 
 - (GINode*)nodeForCommit:(GCHistoryCommit*)commit;

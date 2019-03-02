@@ -33,7 +33,7 @@ typedef NS_ENUM(NSUInteger, GCCommitRelation) {
 
 @class GCCommit, GCIndex;
 
-typedef GCCommit* (^GCConflictHandler)(GCIndex* index, GCCommit* ourCommit, GCCommit* theirCommit, NSArray* parentCommits, NSString* message, NSError** outError);
+typedef GCCommit* (^GCConflictHandler)(GCIndex* index, GCCommit* ourCommit, GCCommit* theirCommit, NSArray<GCCommit*>* parentCommits, NSString* message, NSError** outError);
 
 @interface GCRepository (Bare)
 - (GCCommit*)squashCommitOntoParent:(GCCommit*)squashCommit withUpdatedMessage:(NSString*)message error:(NSError**)error;
@@ -54,7 +54,7 @@ typedef GCCommit* (^GCConflictHandler)(GCIndex* index, GCCommit* ourCommit, GCCo
 
 - (GCCommitRelation)findRelationOfCommit:(GCCommit*)ofCommit relativeToCommit:(GCCommit*)toCommit error:(NSError**)error;
 
-- (GCCommit*)findMergeBaseForCommits:(NSArray*)commits error:(NSError**)error;
+- (GCCommit*)findMergeBaseForCommits:(NSArray<GCCommit*>*)commits error:(NSError**)error;
 - (GCMergeAnalysisResult)analyzeMergingCommit:(GCCommit*)mergeCommit intoCommit:(GCCommit*)intoCommit ancestorCommit:(GCCommit**)ancestorCommit error:(NSError**)error;
 - (GCCommit*)mergeCommit:(GCCommit*)mergeCommit
               intoCommit:(GCCommit*)intoCommit
@@ -64,13 +64,13 @@ typedef GCCommit* (^GCConflictHandler)(GCIndex* index, GCCommit* ourCommit, GCCo
                    error:(NSError**)error;
 
 - (GCCommit*)createCommitFromIndex:(GCIndex*)index
-                       withParents:(NSArray*)parents
+                       withParents:(NSArray<GCCommit*>*)parents
                            message:(NSString*)message
                              error:(NSError**)error;
 
 - (GCCommit*)copyCommit:(GCCommit*)copyCommit
       withUpdatedMessage:(NSString*)message
-          updatedParents:(NSArray*)parents
+          updatedParents:(NSArray<GCCommit*>*)parents
     updatedTreeFromIndex:(GCIndex*)index
          updateCommitter:(BOOL)updateCommitter
                    error:(NSError**)error;
@@ -79,7 +79,7 @@ typedef GCCommit* (^GCConflictHandler)(GCIndex* index, GCCommit* ourCommit, GCCo
                ontoCommit:(GCCommit*)ontoCommit
        withAncestorCommit:(GCCommit*)ancestorCommit  // Typically a parent of "replayCommit" (the first one to use the main line)
            updatedMessage:(NSString*)message
-           updatedParents:(NSArray*)parents
+           updatedParents:(NSArray<GCCommit*>*)parents
           updateCommitter:(BOOL)updateCommitter
             skipIdentical:(BOOL)skipIdentical
           conflictHandler:(GCConflictHandler)handler

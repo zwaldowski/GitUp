@@ -27,7 +27,7 @@ extern NSString* const GICommitMessageViewUserDefaultKey_ShowMargins;
 extern NSString* const GICommitMessageViewUserDefaultKey_EnableSpellChecking;
 
 @interface NSMutableAttributedString (GIAppKit)
-- (void)appendString:(NSString*)string withAttributes:(NSDictionary*)attributes;
+- (void)appendString:(NSString*)string withAttributes:(NSDictionary<NSAttributedStringKey,id>*)attributes;
 @end
 
 @interface NSAlert (GIAppKit)

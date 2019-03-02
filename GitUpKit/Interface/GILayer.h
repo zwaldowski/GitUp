@@ -15,8 +15,10 @@
 
 #import <Foundation/Foundation.h>
 
+@class GINode, GILine;
+
 @interface GILayer : NSObject
-@property(nonatomic, readonly) NSArray* nodes;  // NOT RETAINED
-@property(nonatomic, readonly) NSArray* lines;  // NOT RETAINED
+@property(nonatomic, readonly) NSArray<GINode*>* nodes;  // NOT RETAINED
+@property(nonatomic, readonly) NSArray<GILine*>* lines;  // NOT RETAINED
 @property(nonatomic, readonly) NSUInteger index;  // Matches index in layers array
 @end

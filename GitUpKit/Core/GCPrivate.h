@@ -135,10 +135,10 @@ extern int git_submodule_foreach_block(git_repository* repo, int (^block)(git_su
 @interface GCTask : NSObject
 @property(nonatomic, readonly) NSString* executablePath;
 @property(nonatomic) NSTimeInterval executionTimeOut;  // Default is 0.0 i.e. no timeout
-@property(nonatomic, copy) NSDictionary* additionalEnvironment;
+@property(nonatomic, copy) NSDictionary<NSString *,NSString *>* additionalEnvironment;
 @property(nonatomic, copy) NSString* currentDirectoryPath;
 - (instancetype)initWithExecutablePath:(NSString*)path;
-- (BOOL)runWithArguments:(NSArray*)arguments stdin:(NSData*)stdin stdout:(NSData**)stdout stderr:(NSData**)stderr exitStatus:(int*)exitStatus error:(NSError**)error;  // Returns NO if "exitStatus" is NULL and executable exits with a non-zero status
+- (BOOL)runWithArguments:(NSArray<NSString *>*)arguments stdin:(NSData*)stdin stdout:(NSData**)stdout stderr:(NSData**)stderr exitStatus:(int*)exitStatus error:(NSError**)error;  // Returns NO if "exitStatus" is NULL and executable exits with a non-zero status
 @end
 
 #endif
@@ -219,8 +219,8 @@ extern int git_submodule_foreach_block(git_repository* repo, int (^block)(git_su
 @end
 
 @interface GCSnapshot ()
-@property(nonatomic, readonly) NSDictionary* config;
-@property(nonatomic, readonly) NSArray* serializedReferences;
+@property(nonatomic, readonly) NSDictionary<NSString*, NSString*>* config;
+@property(nonatomic, readonly) NSArray<GCSerializedReference*>* serializedReferences;
 - (id)initWithRepository:(GCRepository*)repository error:(NSError**)error;
 - (GCSerializedReference*)serializedReferenceWithName:(const char*)name;
 @end

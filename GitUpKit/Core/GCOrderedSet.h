@@ -21,22 +21,22 @@
  * This class is optimized to be fast when you have a lot of calls to
  * - addObject: , -containsObject: and -removeObject: methods.
  */
-@interface GCOrderedSet : NSObject
+@interface GCOrderedSet<__covariant ObjectType: GCObject*> : NSObject
 
 /**
  * Accessing this property is CPU-expensive.
  * It makes a copy of internal storage, filtered by existing objects.
  * Try to store the value somewhere else and don't access this property if you don't have to.
  */
-@property(nonatomic, readonly) NSArray* objects;
+@property(nonatomic, readonly) NSArray<ObjectType>* objects;
 
 /**
  * NOTE: Usually it is unnecessary to add an object, then remove it, then add it again.
  * But if you will do this, it will appear in the object array
  * at the SAME PLACE AS IT WAS ADDED.
  */
-- (void)addObject:(GCObject*)object;
-- (BOOL)containsObject:(GCObject*)object;
-- (void)removeObject:(GCObject*)object;
+- (void)addObject:(ObjectType)object;
+- (BOOL)containsObject:(ObjectType)object;
+- (void)removeObject:(ObjectType)object;
 
 @end

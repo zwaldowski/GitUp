@@ -1196,7 +1196,7 @@ cleanup:
   return [self _reloadHistory:history usingSnapshot:nil referencesDidChange:NULL addedCommits:NULL removedCommits:NULL error:error] ? history : nil;
 }
 
-- (BOOL)reloadHistory:(GCHistory*)history referencesDidChange:(BOOL*)referencesDidChange addedCommits:(NSArray**)addedCommits removedCommits:(NSArray**)removedCommits error:(NSError**)error {
+- (BOOL)reloadHistory:(GCHistory*)history referencesDidChange:(BOOL*)referencesDidChange addedCommits:(NSArray<GCCommit *>**)addedCommits removedCommits:(NSArray<GCCommit *>**)removedCommits error:(NSError**)error {
   return [self _reloadHistory:history usingSnapshot:nil referencesDidChange:referencesDidChange addedCommits:addedCommits removedCommits:removedCommits error:error];
 }
 
