@@ -124,7 +124,7 @@
 		E2A5BE6F1A814970008DD47F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E2B14B561A88102C00003E64 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		E2BDA0681AD47A2F00E69729 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = en; path = en.lproj/Help.plist; sourceTree = "<group>"; };
-		E2C338AB19F8562F00063D95 /* GitUp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitUp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2C338AB19F8562F00063D95 /* GitUp (ZW).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GitUp (ZW).app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2C338AF19F8562F00063D95 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E2C338B019F8562F00063D95 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		E2C338B119F8562F00063D95 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -236,7 +236,7 @@
 		E2C338AC19F8562F00063D95 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E2C338AB19F8562F00063D95 /* GitUp.app */,
+				E2C338AB19F8562F00063D95 /* GitUp (ZW).app */,
 				E21DCAE81B253847006424E8 /* gitup */,
 			);
 			name = Products;
@@ -304,7 +304,7 @@
 			);
 			name = Application;
 			productName = GitUp;
-			productReference = E2C338AB19F8562F00063D95 /* GitUp.app */;
+			productReference = E2C338AB19F8562F00063D95 /* GitUp (ZW).app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -329,6 +329,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = E2C338A219F8562F00063D95;
@@ -511,7 +512,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUNDLE_VERSION = 0;
-				BUNDLE_VERSION_STRING = 1.0.11;
+				BUNDLE_VERSION_STRING = 1.0.12;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				DEVELOPMENT_TEAM = 53A8EFRS44;
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/Third-Party";
@@ -520,7 +521,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				OTHER_LDFLAGS = "-Wl,-rpath,@loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "co.gitup.mac-debug";
-				PRODUCT_NAME = GitUp;
+				PRODUCT_NAME = "GitUp (ZW)";
 			};
 			name = Debug;
 		};
@@ -529,7 +530,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUNDLE_VERSION = 0;
-				BUNDLE_VERSION_STRING = 1.0.11;
+				BUNDLE_VERSION_STRING = 1.0.12;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				DEVELOPMENT_TEAM = 53A8EFRS44;
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/Third-Party";
@@ -538,7 +539,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				OTHER_LDFLAGS = "-Wl,-rpath,@loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = co.gitup.mac;
-				PRODUCT_NAME = GitUp;
+				PRODUCT_NAME = "GitUp (ZW)";
 			};
 			name = Release;
 		};

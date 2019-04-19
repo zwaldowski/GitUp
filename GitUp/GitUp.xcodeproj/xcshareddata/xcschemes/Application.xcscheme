@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E2C338AA19F8562F00063D95"
-               BuildableName = "GitUp.app"
+               BuildableName = "GitUp (ZW).app"
                BlueprintName = "Application"
                ReferencedContainer = "container:GitUp.xcodeproj">
             </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E2C338AA19F8562F00063D95"
-            BuildableName = "GitUp.app"
+            BuildableName = "GitUp (ZW).app"
             BlueprintName = "Application"
             ReferencedContainer = "container:GitUp.xcodeproj">
          </BuildableReference>
@@ -93,7 +93,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "E2C338AA19F8562F00063D95"
-            BuildableName = "GitUp.app"
+            BuildableName = "GitUp (ZW).app"
             BlueprintName = "Application"
             ReferencedContainer = "container:GitUp.xcodeproj">
          </BuildableReference>
