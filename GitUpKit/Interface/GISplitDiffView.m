@@ -37,6 +37,9 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
   kSelectionMode_Inverse
 };
 
+@interface GISplitDiffView () <NSUserInterfaceValidations>
+@end
+
 @interface GISplitDiffLine : NSObject
 @property(nonatomic, readonly) DiffLineType type;
 
@@ -113,6 +116,47 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
   _selectedLines = [[NSMutableIndexSet alloc] init];
 }
 
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
+}
+
+- (void)_windowKeyDidChange:(NSNotification*)notification {
+  if ([self hasSelection]) {
+    [self setNeedsDisplay:YES];  // TODO: Only redraw what's needed
+  }
+}
+
+- (void)viewDidMoveToWindow {
+  [super viewDidMoveToWindow];
+
+  if (self.window) {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_windowKeyDidChange:) name:NSWindowDidBecomeKeyNotification object:self.window];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_windowKeyDidChange:) name:NSWindowDidResignKeyNotification object:self.window];
+  } else {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
+  }
+}
+
+- (BOOL)acceptsFirstResponder {
+  return YES;
+}
+
+- (BOOL)becomeFirstResponder {
+  if (self.hasSelection) {
+    [self setNeedsDisplay:YES];
+  }
+  return YES;
+}
+
+- (BOOL)resignFirstResponder {
+  if (self.hasSelection) {
+    [self setNeedsDisplay:YES];
+  }
+  return YES;
+}
+
 - (BOOL)isEmpty {
   return (_lines.count == 0);
 }
@@ -121,6 +165,8 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
   [super didUpdatePatch];
 
   [_lines removeAllObjects];
+
+  [self setNeedsDisplay:YES];
 }
 
 - (CGFloat)updateLayoutForWidth:(CGFloat)width {
@@ -181,7 +227,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
     };
     [self.patch enumerateUsingBeginHunkHandler:^(NSUInteger oldLineNumber, NSUInteger oldLineCount, NSUInteger newLineNumber, NSUInteger newLineCount) {
       NSString* string = [[NSString alloc] initWithFormat:@"@@ -%lu,%lu +%lu,%lu @@", oldLineNumber, oldLineCount, newLineNumber, newLineCount];
-      CFAttributedStringRef attributedString = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)string, GIDiffViewAttributes);
+      CFAttributedStringRef attributedString = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)string, (CFDictionaryRef)GIDiffViewLineAttributes);
       CTLineRef line = CTLineCreateWithAttributedString(attributedString);
       CFRelease(attributedString);
 
@@ -195,17 +241,10 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
       startIndex = NSNotFound;
     }
         lineHandler:^(GCLineDiffChange change, NSUInteger oldLineNumber, NSUInteger newLineNumber, const char* contentBytes, NSUInteger contentLength) {
-          NSString* string;
-          if (contentBytes[contentLength - 1] != '\n') {
-            size_t length = strlen(GIDiffViewMissingNewlinePlaceholder);
-            char* buffer = malloc(contentLength + length);
-            bcopy(contentBytes, buffer, contentLength);
-            bcopy(GIDiffViewMissingNewlinePlaceholder, &buffer[contentLength], length);
-            string = [[NSString alloc] initWithBytesNoCopy:buffer length:(contentLength + length) encoding:NSUTF8StringEncoding freeWhenDone:YES];
-          } else {
-            string = [[NSString alloc] initWithBytesNoCopy:(void*)contentBytes length:contentLength encoding:NSUTF8StringEncoding freeWhenDone:NO];
-          }
-          if (string == nil) {
+          NSString *string = [[NSString alloc] initWithBytesNoCopy:(void *)contentBytes length:contentLength encoding:NSUTF8StringEncoding freeWhenDone:NO];
+          if ([string characterAtIndex:string.length - 1] != '\n') {
+            string = [string stringByAppendingString:GIDiffViewMissingNewlinePlaceholder];
+          } else if (!string) {
             string = @"<LINE IS NOT VALID UTF-8>\n";
             GC_DEBUG_UNREACHABLE();
           }
@@ -227,7 +266,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
               break;
           }
 
-          CFAttributedStringRef attributedString = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)string, GIDiffViewAttributes);
+          CFAttributedStringRef attributedString = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)string, (CFDictionaryRef)GIDiffViewLineAttributes);
           CTTypesetterRef typeSetter = CTTypesetterCreateWithAttributedString(attributedString);
           CFIndex length = CFAttributedStringGetLength(attributedString);
           CFIndex offset = 0;
@@ -388,8 +427,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
 
         if (leftLine) {
           if (!diffLine.leftWrapped) {
-            [GIDiffViewLineNumberColor setFill];
-            CFAttributedStringRef string = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)(diffLine.leftNumber >= 100000 ? @"9999…" : [NSString stringWithFormat:@"%5lu", diffLine.leftNumber]), GIDiffViewAttributes);
+            CFAttributedStringRef string = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)(diffLine.leftNumber >= 100000 ? @"9999…" : [NSString stringWithFormat:@"%5lu", diffLine.leftNumber]), (CFDictionaryRef)GIDiffViewGutterAttributes);
             CTLineRef prefix = CTLineCreateWithAttributedString(string);
             CGContextSetTextPosition(context, 5, textPosition);
             CTLineDraw(prefix, context);
@@ -410,14 +448,12 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
             CGContextFillRect(context, CGRectMake(startX, linePosition, endX - startX, GIDiffViewLineHeight));
           }
 
-          [GIDiffViewPlainTextColor set];
           CGContextSetTextPosition(context, kTextLineNumberMargin + kTextInsetLeft, textPosition);
           CTLineDraw(leftLine, context);
         }
         if (rightLine) {
           if (!diffLine.rightWrapped) {
-            [GIDiffViewLineNumberColor setFill];
-            CFAttributedStringRef string = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)(diffLine.rightNumber >= 100000 ? @"9999…" : [NSString stringWithFormat:@"%5lu", diffLine.rightNumber]), GIDiffViewAttributes);
+            CFAttributedStringRef string = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)(diffLine.rightNumber >= 100000 ? @"9999…" : [NSString stringWithFormat:@"%5lu", diffLine.rightNumber]), (CFDictionaryRef)GIDiffViewGutterAttributes);
             CTLineRef prefix = CTLineCreateWithAttributedString(string);
             CGContextSetTextPosition(context, offset + 5, textPosition);
             CTLineDraw(prefix, context);
@@ -438,7 +474,6 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
             CGContextFillRect(context, CGRectMake(startX, linePosition, endX - startX, GIDiffViewLineHeight));
           }
 
-          [GIDiffViewPlainTextColor set];
           CGContextSetTextPosition(context, offset + kTextLineNumberMargin + kTextInsetLeft, textPosition);
           CTLineDraw(rightLine, context);
         }
@@ -471,14 +506,6 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
 
 - (BOOL)hasSelection {
   return _selectedLines.count || _selectedText.length;
-}
-
-- (BOOL)hasSelectedText {
-  return _selectedText.length ? YES : NO;
-}
-
-- (BOOL)hasSelectedLines {
-  return _selectedLines.count ? YES : NO;
 }
 
 - (void)clearSelection {
@@ -551,6 +578,14 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
       }
     }];
   }
+}
+
+- (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
+  if (item.action == @selector(copy:)) {
+    return [self hasSelection];
+  }
+
+  return NO;
 }
 
 - (void)mouseDown:(NSEvent*)event {
@@ -773,6 +808,13 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
   if (_lines.count) {
     [self.delegate diffViewDidChangeSelection:self];  // TODO: Avoid calling delegate if seleciton hasn't actually changed
   }
+}
+
+- (void)copy:(id)sender {
+  [[NSPasteboard generalPasteboard] declareTypes:@[ NSPasteboardTypeString ] owner:nil];
+  NSString* text;
+  [self getSelectedText:&text oldLines:NULL newLines:NULL];
+  [[NSPasteboard generalPasteboard] setString:text forType:NSPasteboardTypeString];
 }
 
 @end

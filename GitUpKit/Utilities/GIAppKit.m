@@ -38,12 +38,18 @@ static NSColor* _separatorColor = nil;
 
 - (void)appendString:(NSString*)string withAttributes:(NSDictionary*)attributes {
   if (string.length) {
+    [self beginEditing];
     NSInteger length = self.length;
     [self replaceCharactersInRange:NSMakeRange(length, 0) withString:string];
     if (attributes) {
       [self setAttributes:attributes range:NSMakeRange(length, self.length - length)];
     }
+    [self endEditing];
   }
+}
+
+- (void)deleteAllCharacters {
+  [self deleteCharactersInRange:NSMakeRange(0, self.length)];
 }
 
 @end
@@ -131,6 +137,33 @@ static NSColor* _separatorColor = nil;
     return;
   }
   [super doCommandBySelector:selector];
+}
+
+- (NSRange)selectionRangeForProposedRange:(NSRange)proposedCharRange granularity:(NSSelectionGranularity)granularity {
+  // Paragraph select from the gutter.
+  NSEvent *event = self.window.currentEvent;
+  if ((event.type == NSEventTypeLeftMouseDown || event.type == NSEventTypeLeftMouseUp || event.type == NSEventTypeLeftMouseDragged) && event.clickCount == 1) {
+    NSRange glyphRange = [self.layoutManager glyphRangeForCharacterRange:proposedCharRange actualCharacterRange:NULL];
+    NSRect boundingRect = [self.layoutManager lineFragmentRectForGlyphAtIndex:glyphRange.location effectiveRange:NULL];
+    NSPoint clickPoint = [self convertPoint:event.locationInWindow fromView:nil];
+    if (!CGRectContainsPoint(boundingRect, clickPoint) && clickPoint.x < CGRectGetMinX(boundingRect)) {
+      return [super selectionRangeForProposedRange:proposedCharRange granularity:NSSelectByParagraph];
+    }
+  }
+
+  return [super selectionRangeForProposedRange:proposedCharRange granularity:granularity];
+}
+
+- (void)insertText:(id)string replacementRange:(NSRange)replacementRange {
+  if (!self.isEditable && !self.hasMarkedText) {
+    NSString *incomingString = [string isKindOfClass:[NSAttributedString class]] ? [string string] : string;
+    if ([incomingString isEqual:@" "]) {
+      [self.nextResponder tryToPerform:@selector(keyDown:) with:self.window.currentEvent];
+      return;
+    }
+  }
+
+  [super insertText:string replacementRange:replacementRange];
 }
 
 @end

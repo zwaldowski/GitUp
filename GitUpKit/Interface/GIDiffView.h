@@ -22,7 +22,7 @@
 @end
 
 // Base class
-@interface GIDiffView : NSView <NSUserInterfaceValidations>
+@interface GIDiffView : NSView
 - (void)didFinishInitializing;  // For subclasses only
 - (void)didUpdatePatch;  // For subclasses only
 
@@ -33,8 +33,6 @@
 - (CGFloat)updateLayoutForWidth:(CGFloat)width;
 
 @property(nonatomic, readonly) BOOL hasSelection;
-@property(nonatomic, readonly) BOOL hasSelectedText;
-@property(nonatomic, readonly) BOOL hasSelectedLines;
 - (void)clearSelection;
 - (void)getSelectedText:(NSString**)text oldLines:(NSIndexSet**)oldLines newLines:(NSIndexSet**)newLines;
 @end

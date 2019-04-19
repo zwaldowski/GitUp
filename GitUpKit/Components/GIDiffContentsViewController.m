@@ -428,7 +428,7 @@ static NSColor* _DimColor(NSColor* color) {
 - (BOOL)getSelectedLinesForDelta:(GCDiffDelta*)delta oldLines:(NSIndexSet**)oldLines newLines:(NSIndexSet**)newLines {
   for (GIDiffContentData* data in _data) {
     if ([data.delta.canonicalPath isEqualToString:delta.canonicalPath]) {  // Don't use -isEqualToDelta:
-      if (data.diffView.hasSelectedLines) {
+      if (data.diffView.hasSelection) {
         [data.diffView getSelectedText:NULL oldLines:oldLines newLines:newLines];
         return YES;
       }

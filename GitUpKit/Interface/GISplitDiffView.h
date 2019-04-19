@@ -15,5 +15,5 @@
 
 #import "GIDiffView.h"
 
-@interface GISplitDiffView : GIDiffView
+@interface GISplitDiffView : GIDiffView <NSUserInterfaceValidations>
 @end

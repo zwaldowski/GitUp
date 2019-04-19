@@ -18,7 +18,8 @@
 
 #if __GI_HAS_APPKIT__
 
-extern CFDictionaryRef GIDiffViewAttributes;
+extern NSDictionary<NSAttributedStringKey, id> *GIDiffViewLineAttributes;
+extern NSDictionary<NSAttributedStringKey, id> *GIDiffViewGutterAttributes;
 
 extern CTLineRef GIDiffViewAddedLine;
 extern CTLineRef GIDiffViewDeletedLine;
@@ -34,10 +35,10 @@ extern NSColor* GIDiffViewSeparatorBackgroundColor;
 extern NSColor* GIDiffViewSeparatorLineColor;
 extern NSColor* GIDiffViewSeparatorTextColor;
 extern NSColor* GIDiffViewVerticalLineColor;
-extern NSColor* GIDiffViewLineNumberColor;
-extern NSColor* GIDiffViewPlainTextColor;
 
-extern const char* GIDiffViewMissingNewlinePlaceholder;
+extern NSString* const GIDiffViewMissingNewlinePlaceholder;
+extern NSString* const GIDiffViewAddedLineIndicator;
+extern NSString* const GIDiffViewDeletedLineIndicator;
 
 #endif
 

@@ -23,7 +23,8 @@
 #define kTextLineHeightPadding 3
 #define kTextLineDescentAdjustment 1
 
-CFDictionaryRef GIDiffViewAttributes = nil;
+NSDictionary *GIDiffViewLineAttributes = nil;
+NSDictionary *GIDiffViewGutterAttributes = nil;
 
 CTLineRef GIDiffViewAddedLine = NULL;
 CTLineRef GIDiffViewDeletedLine = NULL;
@@ -39,21 +40,39 @@ NSColor* GIDiffViewSeparatorBackgroundColor = nil;
 NSColor* GIDiffViewSeparatorLineColor = nil;
 NSColor* GIDiffViewSeparatorTextColor = nil;
 NSColor* GIDiffViewVerticalLineColor = nil;
-NSColor* GIDiffViewLineNumberColor = nil;
-NSColor* GIDiffViewPlainTextColor = nil;
 
-const char* GIDiffViewMissingNewlinePlaceholder = "🚫\n";
+NSString* const GIDiffViewMissingNewlinePlaceholder = @"🚫\n";
+NSString* const GIDiffViewAddedLineIndicator = @"+";
+NSString* const GIDiffViewDeletedLineIndicator = @"-";
 
 @implementation GIDiffView
 
 + (void)initialize {
-  GIDiffViewAttributes = CFBridgingRetain(@{(id)kCTFontAttributeName : [NSFont userFixedPitchFontOfSize:kTextFontSize], (id)kCTForegroundColorFromContextAttributeName : (id)kCFBooleanTrue});
+  NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  paragraphStyle.lineHeightMultiple = 1.2;
+  paragraphStyle.lineSpacing = 2;
+  paragraphStyle.minimumLineHeight = 14;
+  paragraphStyle.maximumLineHeight = 14;
 
-  CFAttributedStringRef addedString = CFAttributedStringCreate(kCFAllocatorDefault, CFSTR("+"), GIDiffViewAttributes);
+  NSFont *font = [NSFont userFixedPitchFontOfSize:kTextFontSize];
+
+  GIDiffViewLineAttributes = @{
+    NSParagraphStyleAttributeName: paragraphStyle,
+    NSFontAttributeName: font,
+    NSForegroundColorAttributeName: [NSColor textColor],
+  };
+
+  GIDiffViewGutterAttributes = @{
+    NSParagraphStyleAttributeName: paragraphStyle,
+    NSFontAttributeName: font,
+    NSForegroundColorAttributeName: [NSColor tertiaryLabelColor],
+  };
+
+  CFAttributedStringRef addedString = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)GIDiffViewAddedLineIndicator, (CFDictionaryRef)GIDiffViewGutterAttributes);
   GIDiffViewAddedLine = CTLineCreateWithAttributedString(addedString);
   CFRelease(addedString);
 
-  CFAttributedStringRef deletedString = CFAttributedStringCreate(kCFAllocatorDefault, CFSTR("-"), GIDiffViewAttributes);
+  CFAttributedStringRef deletedString = CFAttributedStringCreate(kCFAllocatorDefault, (CFStringRef)GIDiffViewDeletedLineIndicator, (CFDictionaryRef)GIDiffViewGutterAttributes);
   GIDiffViewDeletedLine = CTLineCreateWithAttributedString(deletedString);
   CFRelease(deletedString);
 
@@ -72,26 +91,6 @@ const char* GIDiffViewMissingNewlinePlaceholder = "🚫\n";
   GIDiffViewSeparatorLineColor = [NSColor colorWithDeviceRed:0.9 green:0.9 blue:0.9 alpha:1.0];
   GIDiffViewSeparatorTextColor = [NSColor colorWithDeviceRed:0.65 green:0.65 blue:0.65 alpha:1.0];
   GIDiffViewVerticalLineColor = [NSColor colorWithDeviceRed:0.85 green:0.85 blue:0.85 alpha:0.6];
-  GIDiffViewLineNumberColor = [NSColor colorWithDeviceRed:0.75 green:0.75 blue:0.75 alpha:1.0];
-  GIDiffViewPlainTextColor = [NSColor blackColor];
-}
-
-- (void)_windowKeyDidChange:(NSNotification*)notification {
-  if ([self hasSelection]) {
-    [self setNeedsDisplay:YES];  // TODO: Only redraw what's needed
-  }
-}
-
-- (void)viewDidMoveToWindow {
-  [super viewDidMoveToWindow];
-
-  if (self.window) {
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_windowKeyDidChange:) name:NSWindowDidBecomeKeyNotification object:self.window];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_windowKeyDidChange:) name:NSWindowDidResignKeyNotification object:self.window];
-  } else {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
-  }
 }
 
 - (void)didFinishInitializing {
@@ -112,11 +111,6 @@ const char* GIDiffViewMissingNewlinePlaceholder = "🚫\n";
   return self;
 }
 
-- (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
-  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
-}
-
 - (BOOL)isOpaque {
   return YES;
 }
@@ -134,8 +128,6 @@ const char* GIDiffViewMissingNewlinePlaceholder = "🚫\n";
   if (patch != _patch) {
     _patch = patch;
     [self didUpdatePatch];
-
-    [self setNeedsDisplay:YES];
   }
 }
 
@@ -144,21 +136,7 @@ const char* GIDiffViewMissingNewlinePlaceholder = "🚫\n";
   return 0.0;
 }
 
-- (void)drawRect:(NSRect)dirtyRect {
-  [self doesNotRecognizeSelector:_cmd];
-}
-
 - (BOOL)hasSelection {
-  [self doesNotRecognizeSelector:_cmd];
-  return NO;
-}
-
-- (BOOL)hasSelectedText {
-  [self doesNotRecognizeSelector:_cmd];
-  return NO;
-}
-
-- (BOOL)hasSelectedLines {
   [self doesNotRecognizeSelector:_cmd];
   return NO;
 }
@@ -169,39 +147,6 @@ const char* GIDiffViewMissingNewlinePlaceholder = "🚫\n";
 
 - (void)getSelectedText:(NSString**)text oldLines:(NSIndexSet**)oldLines newLines:(NSIndexSet**)newLines {
   [self doesNotRecognizeSelector:_cmd];
-}
-
-- (BOOL)acceptsFirstResponder {
-  return YES;
-}
-
-- (BOOL)becomeFirstResponder {
-  if (self.hasSelection) {
-    [self setNeedsDisplay:YES];
-  }
-  return YES;
-}
-
-- (BOOL)resignFirstResponder {
-  if (self.hasSelection) {
-    [self setNeedsDisplay:YES];
-  }
-  return YES;
-}
-
-- (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
-  if (item.action == @selector(copy:)) {
-    return [self hasSelection];
-  }
-
-  return NO;
-}
-
-- (void)copy:(id)sender {
-  [[NSPasteboard generalPasteboard] declareTypes:@[ NSPasteboardTypeString ] owner:nil];
-  NSString* text;
-  [self getSelectedText:&text oldLines:NULL newLines:NULL];
-  [[NSPasteboard generalPasteboard] setString:text forType:NSPasteboardTypeString];
 }
 
 @end

@@ -28,6 +28,7 @@ extern NSString* const GICommitMessageViewUserDefaultKey_EnableSpellChecking;
 
 @interface NSMutableAttributedString (GIAppKit)
 - (void)appendString:(NSString*)string withAttributes:(NSDictionary<NSAttributedStringKey,id>*)attributes;
+- (void)deleteAllCharacters;
 @end
 
 @interface NSAlert (GIAppKit)
