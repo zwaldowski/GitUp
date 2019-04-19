@@ -28,9 +28,6 @@
 #define kContextualMenuOffsetX 0
 #define kContextualMenuOffsetY -6
 
-@interface GIDiffContentScrollView : NSScrollView
-@end
-
 @interface GIDiffContentData : NSObject
 @property(nonatomic, strong) GCDiffDelta* delta;
 @property(nonatomic, strong) GCIndexConflict* conflict;
@@ -77,20 +74,12 @@
 @end
 
 @interface GIDiffContentsViewController () <NSTableViewDataSource, GIDiffViewDelegate>
-@property(nonatomic, weak) IBOutlet GIDiffContentScrollView* scrollView;
+@property(nonatomic, weak) IBOutlet NSScrollView* scrollView;
 @property(nonatomic, weak) IBOutlet GIContentsTableView* tableView;
 @property(nonatomic, weak) IBOutlet NSTextField* emptyTextField;
 @end
 
 NSString* const GIDiffContentsViewControllerUserDefaultKey_DiffViewMode = @"GIDiffContentsViewController_DiffViewMode";
-
-@implementation GIDiffContentScrollView
-
-+ (BOOL)isCompatibleWithResponsiveScrolling {
-  return NO;  // Responsive scrolling can reveal blank areas while scrolling rapidly which looks ugly
-}
-
-@end
 
 @implementation GIDiffContentData
 @end
