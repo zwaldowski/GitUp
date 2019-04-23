@@ -164,11 +164,15 @@
 
 @end
 
-@interface GIUnifiedDiffView () <NSTextViewDelegate>
+@interface GIUnifiedDiffView () <NSTextViewDelegate, NSLayoutManagerDelegate>
 @property (nonatomic) GITextView *textView;
 @end
 
 @implementation GIUnifiedDiffView
+
+- (void)layoutManager:(NSLayoutManager *)layoutManager textContainer:(NSTextContainer *)textContainer didChangeGeometryFromSize:(NSSize)oldSize {
+  NSLog(@"!!!!, %@ %@", NSStringFromSize(oldSize), NSStringFromSize(textContainer.size));
+}
 
 - (void)didFinishInitializing {
   [super didFinishInitializing];
@@ -179,6 +183,7 @@
   textView.delegate = self;
   textView.textContainerInset = CGSizeZero;
   textView.textContainer.lineFragmentPadding = 0;
+  textView.layoutManager.delegate = self;
   [self addSubview:textView];
   self.textView = textView;
 }

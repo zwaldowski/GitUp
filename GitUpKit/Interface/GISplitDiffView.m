@@ -18,11 +18,13 @@
 #endif
 
 #import "GIPrivate.h"
+#import "GIAppKit.h"
 
 #define kTextLineNumberMargin (5 * 8)
 #define kTextInsetLeft 5
 #define kTextInsetRight 5
 #define kTextBottomPadding 0
+#define kSeparatorHairline 0.5
 
 typedef NS_ENUM(NSUInteger, DiffLineType) {
   kDiffLineType_Separator = 0,
@@ -37,7 +39,197 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
   kSelectionMode_Inverse
 };
 
-@interface GISplitDiffView () <NSUserInterfaceValidations>
+@interface GISplitDiffView () <NSUserInterfaceValidations, NSSplitViewDelegate, NSTextViewDelegate, NSLayoutManagerDelegate>
+@property (nonatomic) NSSplitView *splitView;
+@property (nonatomic) GITextView *leftTextView;
+@property (nonatomic) GITextView *rightTextView;
+@end
+
+@interface GISplitDiffBlock: NSTextBlock <NSCopying>
+
+@property (nonatomic, readonly) GCLineDiffChange change;
+@property (nonatomic) NSRange companionRange;
+
+@end
+
+@implementation GISplitDiffBlock
+
+- (GCLineDiffChange)change {
+  return kGCLineDiffChange_Unmodified;
+}
+
+- (instancetype)init {
+  self = [super init];
+  if (!self) { return nil; }
+
+  _companionRange = NSMakeRange(NSNotFound, 0);
+
+  [self setContentWidth:100 type:NSTextBlockPercentageValueType];
+
+  return self;
+}
+
+- (BOOL)selectedRanges:(NSArray *)array hasRangeContaining:(NSRange)charRange {
+  for (NSValue *value in array) {
+    NSRange selectedRange = value.rangeValue;
+    if (NSEqualRanges(NSIntersectionRange(selectedRange, charRange), charRange)) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
+- (void)drawBackgroundWithFrame:(NSRect)frameRect inView:(NSView *)controlView characterRange:(NSRange)charRange layoutManager:(NSLayoutManager *)layoutManager {
+  [super drawBackgroundWithFrame:frameRect inView:controlView characterRange:charRange layoutManager:layoutManager];
+
+  if ([controlView isKindOfClass:NSTextView.class]) {
+    NSTextView *textView = (NSTextView *)controlView;
+    if ([self selectedRanges:textView.selectedRanges hasRangeContaining:charRange]) {
+      NSColor* selectedColor = textView.window.keyWindow && textView.window.firstResponder == textView ? [NSColor selectedTextBackgroundColor] : [NSColor unemphasizedSelectedTextBackgroundColor];
+      [selectedColor setFill];
+      NSRectFill(frameRect);
+    }
+  }
+}
+
+- (id)copyWithZone:(NSZone *)zone {
+  GISplitDiffBlock *other = [[self.class alloc] init];
+  other.companionRange = self.companionRange;
+  return other;
+}
+
+- (void)unionCompanionRange:(NSRange)companionRange {
+  self.companionRange = self.companionRange.location == NSNotFound ? companionRange : NSUnionRange(self.companionRange, companionRange);
+}
+
+@end
+
+
+@interface GISplitDiffSeparatorBlock: GISplitDiffBlock
+@end
+
+@implementation GISplitDiffSeparatorBlock
+
+- (instancetype)init {
+  self = [super init];
+  if (!self) { return nil; }
+
+  [self setContentWidth:100 type:NSTextBlockPercentageValueType];
+
+  self.backgroundColor = GIDiffViewSeparatorBackgroundColor;
+  [self setBorderColor:GIDiffViewSeparatorLineColor];
+
+  [self setWidth:kSeparatorHairline type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder edge:NSMinYEdge];
+  [self setWidth:kSeparatorHairline type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockBorder edge:NSMaxYEdge];
+  [self setWidth:kTextLineNumberMargin type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding edge:NSMinXEdge];
+
+  return self;
+}
+
+@end
+
+@interface GISplitDiffLineBlock: GISplitDiffBlock
+
+@property (nonatomic, readonly) GCLineDiffChange change;
+@property (nonatomic, readonly) NSUInteger lineNumber;
+
+- (instancetype)initWithChange:(GCLineDiffChange)change lineNumber:(NSUInteger)lineNumber;
+- (instancetype)initWithChange:(GCLineDiffChange)change lineNumber:(NSUInteger)lineNumber companionRange:(NSRange)companionRange;
+
+@end
+
+@implementation GISplitDiffLineBlock
+
+@synthesize change = _change;
+
+- (instancetype)initWithChange:(GCLineDiffChange)change lineNumber:(NSUInteger)lineNumber {
+  return (self = [self initWithChange:change lineNumber:lineNumber companionRange:NSMakeRange(NSNotFound, 0)]);
+}
+
+- (instancetype)initWithChange:(GCLineDiffChange)change lineNumber:(NSUInteger)lineNumber companionRange:(NSRange)companionRange {
+  self = [super init];
+  if (!self) { return nil; }
+
+  _change = change;
+  _lineNumber = lineNumber;
+
+  [self setWidth:kTextLineNumberMargin + kTextInsetLeft type:NSTextBlockAbsoluteValueType forLayer:NSTextBlockPadding edge:NSMinXEdge];
+
+  switch (change) {
+    case kGCLineDiffChange_Unmodified:
+      self.backgroundColor = nil;
+      break;
+    case kGCLineDiffChange_Added:
+      self.backgroundColor = GIDiffViewAddedBackgroundColor;
+      break;
+    case kGCLineDiffChange_Deleted:
+      self.backgroundColor = GIDiffViewDeletedBackgroundColor;
+      break;
+  }
+
+  return self;
+}
+
+- (void)drawBackgroundWithFrame:(NSRect)frameRect inView:(NSView *)controlView characterRange:(NSRange)charRange layoutManager:(NSLayoutManager *)layoutManager {
+  [super drawBackgroundWithFrame:frameRect inView:controlView characterRange:charRange layoutManager:layoutManager];
+
+  [NSGraphicsContext.currentContext saveGraphicsState];
+  NSGraphicsContext.currentContext.shouldAntialias = YES;
+
+  if (self.lineNumber != NSNotFound) {
+    NSString *oldLineNumberText = (self.lineNumber >= 100000 ? @"9999…" : [NSString stringWithFormat:@"%5lu", self.lineNumber]);
+    [oldLineNumberText drawAtPoint:CGPointMake(CGRectGetMinX(frameRect) + 5, CGRectGetMinY(frameRect)) withAttributes:GIDiffViewGutterAttributes];
+  }
+
+  [NSGraphicsContext.currentContext restoreGraphicsState];
+
+  [GIDiffViewVerticalLineColor setStroke];
+
+  NSBezierPath *rightLine = [NSBezierPath bezierPath];
+  [rightLine moveToPoint:CGPointMake(CGRectGetMinX(frameRect) + kTextLineNumberMargin - kSeparatorHairline, CGRectGetMinY(frameRect))];
+  [rightLine lineToPoint:CGPointMake(CGRectGetMinX(frameRect) + kTextLineNumberMargin - kSeparatorHairline, CGRectGetMaxY(frameRect))];
+  [rightLine stroke];
+}
+
+- (GISplitDiffLineBlock *)withCompanionRange:(NSRange)companionRange {
+  return [[GISplitDiffLineBlock alloc] initWithChange:self.change lineNumber:self.lineNumber companionRange:companionRange];
+}
+
+//- (GISplitDiffLineBlock *)unionCompanionRange:(NSRange)companionRange {
+//  NSRange newCompanionRange = self.companionRange.location == NSNotFound ? companionRange : NSUnionRange(self.companionRange, companionRange);
+//  return [[GISplitDiffLineBlock alloc] initWithChange:self.change lineNumber:self.lineNumber companionRange:newCompanionRange];
+//}
+
+//- (id)copyWithZone:(NSZone *)zone {
+//  GISplitDiffView *other = [super copyWithZone:zone];
+//}
+
+- (id)copyWithZone:(NSZone *)zone {
+  return [[GISplitDiffLineBlock alloc] initWithChange:self.change lineNumber:self.lineNumber companionRange:self.companionRange];
+}
+
+@end
+
+@implementation NSMutableAttributedString (GISplitDiffView)
+
+- (void)updateSplitDiffBlockInRange:(NSRange)range usingBlock:(void(^)(GISplitDiffBlock *))block {
+  NSRange searchRange = range.length != 0 ? range : NSMakeRange(0, self.length);
+  NSUInteger index = range.length != 0 ? range.location : (self.length != 0 ? self.length - 1 : 0);
+  NSRange effectiveRange;
+//  NSLog(@"%lu %@", index, NSStringFromRange(searchRange));
+  NSMutableParagraphStyle *paragraphStyle = [[self attribute:NSParagraphStyleAttributeName atIndex:index longestEffectiveRange:&effectiveRange inRange:searchRange] mutableCopy];
+  NSMutableArray *textBlocks = [paragraphStyle.textBlocks mutableCopy];
+  NSUInteger blockIndex = [textBlocks indexOfObjectPassingTest:^(NSTextBlock *obj, NSUInteger idx, BOOL *stop) {
+    return [obj isKindOfClass:GISplitDiffBlock.class];
+  }];
+  if (blockIndex == NSNotFound) { return; }
+  GISplitDiffBlock *textBlock = [textBlocks[blockIndex] copy];
+  block(textBlock);
+  textBlocks[blockIndex] = textBlock;
+  paragraphStyle.textBlocks = textBlocks;
+  [self addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:effectiveRange];
+}
+
 @end
 
 @interface GISplitDiffLine : NSObject
@@ -94,6 +286,12 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
 
 @end
 
+typedef struct {
+  NSRange range;
+  BOOL isRight;
+  NSRect rect;
+} ProvisionalLineFragmentRect;
+
 @implementation GISplitDiffView {
   NSMutableArray* _lines;
   NSSize _size;
@@ -107,6 +305,13 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
   NSIndexSet* _startLines;
   NSUInteger _startIndex;
   NSUInteger _startOffset;
+
+  NSUInteger _provisionalLineGlyphIndex;
+  NSUInteger _provisionalLineCharacterIndex;
+  CGRect _provisionalLineFragmentRect;
+  BOOL _provisionalLineFragmentIsRight;
+
+  NSMutableDictionary<NSValue *, NSNumber *> *_calculatedLineFragmentRects;
 }
 
 - (void)didFinishInitializing {
@@ -114,20 +319,162 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
 
   _lines = [[NSMutableArray alloc] initWithCapacity:1024];
   _selectedLines = [[NSMutableIndexSet alloc] init];
+  _calculatedLineFragmentRects = [NSMutableDictionary new];
+  _provisionalLineCharacterIndex = NSNotFound;
+  _provisionalLineGlyphIndex = NSNotFound;
+
+  NSSplitView *splitView = [[NSSplitView alloc] initWithFrame:self.bounds];
+  splitView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+  splitView.vertical = YES;
+  splitView.dividerStyle = NSSplitViewDividerStyleThin;
+  splitView.delegate = self;
+  [self addSubview:splitView];
+  self.splitView = splitView;
+
+  GITextView *leftTextView = [[GITextView alloc] init];
+  leftTextView.editable = NO;
+  leftTextView.delegate = self;
+  leftTextView.textContainerInset = CGSizeZero;
+//  leftTextView.layoutManager.allowsNonContig uousLayout = YES;
+  leftTextView.layoutManager.delegate = self;
+  leftTextView.textContainer.lineFragmentPadding = 0;
+  [splitView addSubview:leftTextView];
+  self.leftTextView = leftTextView;
+
+  GITextView *rightTextView = [[GITextView alloc] init];
+  rightTextView.editable = NO;
+  rightTextView.delegate = self;
+  rightTextView.textContainerInset = CGSizeZero;
+//  rightTextView.layoutManager.allowsNonContiguousLayout = YES;
+  rightTextView.layoutManager.delegate = self;
+  rightTextView.textContainer.lineFragmentPadding = 0;
+  //[rightTextView.layoutManager replaceTextStorage:leftTextView.textStorage];
+  [splitView addSubview:rightTextView];
+  self.rightTextView = rightTextView;
+}
+
+- (void)layoutManager:(NSLayoutManager *)layoutManager textContainer:(NSTextContainer *)textContainer didChangeGeometryFromSize:(NSSize)oldSize {
+  NSLog(@"!!!!, %@ %@", NSStringFromSize(oldSize), NSStringFromSize(textContainer.size));
+}
+
+- (CGFloat)layoutManager:(NSLayoutManager *)layoutManager paragraphSpacingAfterGlyphAtIndex:(NSUInteger)glyphIndex withProposedLineFragmentRect:(NSRect)rect {
+  NSUInteger characterIndex = [layoutManager characterIndexForGlyphAtIndex:glyphIndex];
+  NSParagraphStyle *paragraphStyle = [layoutManager.textStorage attribute:NSParagraphStyleAttributeName atIndex:characterIndex effectiveRange:NULL];
+
+  GISplitDiffBlock *line;
+  for (NSTextBlock *block in paragraphStyle.textBlocks) {
+    if (![block isKindOfClass:GISplitDiffBlock.class]) { continue; }
+    line = (GISplitDiffBlock *)block;
+    break;
+  }
+
+  if (!line || line.companionRange.location == NSNotFound) { return 0; }
+  BOOL isLeft = (layoutManager == self.leftTextView.layoutManager);
+  NSTextView *companion = isLeft ? self.rightTextView : self.leftTextView;
+
+
+  NSRange glyphRange = [companion.layoutManager glyphRangeForCharacterRange:line.companionRange actualCharacterRange:NULL];
+  CGRect companionLineFragmentRect = [companion.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:companion.textContainer];
+
+  CGFloat bottomMargin = 0;
+  if (line.change == kGCLineDiffChange_Unmodified) {
+    bottomMargin = CGRectGetHeight(companionLineFragmentRect) + 1;
+  } else {
+    bottomMargin = CGRectGetHeight(companionLineFragmentRect) - CGRectGetHeight(rect) - 2;
+  }
+
+  NSLog(@"!!! %@ %f", NSStringFromRect(rect), bottomMargin);
+  return bottomMargin;
+
+
+  /*- (NSRect)boundsRectForContentRect:(NSRect)contentRect inRect:(NSRect)rect textContainer:(NSTextContainer *)textContainer characterRange:(NSRange)charRange {
+    NSRect bounds = [super boundsRectForContentRect:contentRect inRect:rect textContainer:textContainer characterRange:charRange];
+
+    if (self.companionRange.location != NSNotFound && [textContainer.textView.delegate isKindOfClass:GISplitDiffView.class]) {
+      GISplitDiffView *parent = (GISplitDiffView *)textContainer.textView.delegate;
+      BOOL isLeft = (textContainer == parent.leftTextView.textContainer);
+      NSTextView *companion = isLeft ? parent.rightTextView : parent.leftTextView;
+
+      NSRange glyphRange = [companion.layoutManager glyphRangeForCharacterRange:self.companionRange actualCharacterRange:NULL];
+      CGRect companionLineFragmentRect = [companion.layoutManager boundingRectForGlyphRange:glyphRange inTextContainer:companion.textContainer];
+
+      CGFloat bottomMargin = 0;
+      if (self.change == kGCLineDiffChange_Unmodified) {
+        bottomMargin = CGRectGetHeight(companionLineFragmentRect);
+      } else {
+        bottomMargin = CGRectGetHeight(companionLineFragmentRect) - CGRectGetHeight(bounds);
+      }
+
+      bounds.size.height += bottomMargin;
+    }
+
+    return bounds;
+  }*/
+
+
+  /*NSUInteger characterIndex = [layoutManager characterIndexForGlyphAtIndex:glyphIndex];
+
+  NSRange testEffectiveRange;
+
+  NSParagraphStyle *paragraphStyle = [layoutManager.textStorage attribute:NSParagraphStyleAttributeName atIndex:characterIndex effectiveRange:&testEffectiveRange];
+  GISplitDiffLineBlock *line;
+  for (NSTextBlock *block in paragraphStyle.textBlocks) {
+    if (![block isKindOfClass:GISplitDiffLineBlock.class]) { continue; }
+    line = (GISplitDiffLineBlock *)block;
+    break;
+  }
+  if (!line || line.companionRange.location == NSNotFound) { return 0; }
+
+  BOOL isLeft = (layoutManager == self.leftTextView.layoutManager);
+
+  if (!isLeft) { return 0; }
+
+  NSLog(@"!!! %@", [self.leftTextView.textStorage.string substringWithRange:testEffectiveRange]);
+
+  CGRect companionLineFragmentRect;
+
+  if (_provisionalLineCharacterIndex == NSMaxRange(line.companionRange) - 1 && ((isLeft && _provisionalLineFragmentIsRight) || (!isLeft && !_provisionalLineFragmentIsRight))) {
+    companionLineFragmentRect = _provisionalLineFragmentRect;
+  } else {
+    _provisionalLineFragmentRect = rect;
+    _provisionalLineFragmentIsRight = !isLeft;
+    _provisionalLineCharacterIndex = characterIndex;
+
+    //- (NSRect)boundingRectForGlyphRange:(NSRange)glyphRange inTextContainer:(NSTextContainer *)container;
+//    [compani]
+
+    NSTextView *companion = isLeft ? self.rightTextView : self.leftTextView;
+    NSRange glyphRange = [companion.layoutManager glyphRangeForCharacterRange:line.companionRange actualCharacterRange:NULL];
+    companionLineFragmentRect = [companion.layoutManager boundingRectForGlyphRange:NSMakeRange(glyphRange.location, glyphRange.length - 1) inTextContainer:companion.textContainer];
+  }
+
+  CGFloat diff = fmax(CGRectGetMaxY(companionLineFragmentRect) - 2 - CGRectGetMaxY(rect), 0);
+
+  NSLog(@"!!! %@ %f %f -> %f", isLeft ? @"ltr" : @"rtl" , CGRectGetHeight(rect), CGRectGetHeight(companionLineFragmentRect), diff);
+
+  return diff;*/
+}
+
+- (BOOL)splitView:(NSSplitView *)splitView canCollapseSubview:(NSView *)subview {
+  return NO;
+}
+
+- (NSRect)splitView:(NSSplitView *)splitView effectiveRect:(NSRect)proposedEffectiveRect forDrawnRect:(NSRect)drawnRect ofDividerAtIndex:(NSInteger)dividerIndex {
+  return NSZeroRect;
 }
 
 - (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
-  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
+//  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidResignKeyNotification object:nil];
+//  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidBecomeKeyNotification object:nil];
 }
 
-- (void)_windowKeyDidChange:(NSNotification*)notification {
+/*- (void)_windowKeyDidChange:(NSNotification*)notification {
   if ([self hasSelection]) {
     [self setNeedsDisplay:YES];  // TODO: Only redraw what's needed
   }
-}
+}*/
 
-- (void)viewDidMoveToWindow {
+/*- (void)viewDidMoveToWindow {
   [super viewDidMoveToWindow];
 
   if (self.window) {
@@ -155,7 +502,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
     [self setNeedsDisplay:YES];
   }
   return YES;
-}
+}*/
 
 - (BOOL)isEmpty {
   return (_lines.count == 0);
@@ -164,13 +511,197 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
 - (void)didUpdatePatch {
   [super didUpdatePatch];
 
-  [_lines removeAllObjects];
+  [_calculatedLineFragmentRects removeAllObjects];
 
-  [self setNeedsDisplay:YES];
+//  [_lines removeAllObjects];
+
+//  [self setNeedsDisplay:YES];
+
+  [self.leftTextView.textStorage beginEditing];
+  [self.rightTextView.textStorage beginEditing];
+  if (self.patch) {
+    NSMutableArray<NSValue *> *deletedLines = [NSMutableArray array];
+    NSMutableArray<NSValue *> *insertedLines = [NSMutableArray array];
+
+    void(^finishPendingPair)(void) = ^{
+      /*for (NSUInteger i = 0; i < deletedLines.count || i < insertedLines.count; i++) {
+        NSValue *deletedLineValue = (i < deletedLines.count) ? deletedLines[i] : deletedLines.lastObject;
+        NSRange deletedLine = deletedLineValue != nil ? deletedLineValue.rangeValue : NSMakeRange(NSNotFound, 0);
+
+        NSValue *insertedLineValue = (i < insertedLines.count) ? insertedLines[i] : insertedLines.lastObject;
+        NSRange insertedLine = insertedLineValue != nil ? insertedLineValue.rangeValue : NSMakeRange(NSNotFound, 0);
+
+        [self.leftTextView.textStorage updateSplitDiffBlockInRange:deletedLine usingBlock:^(GISplitDiffBlock *block){
+          block.companionRange = insertedLine;
+        }];
+
+        [self.rightTextView.textStorage updateSplitDiffBlockInRange:insertedLine usingBlock:^(GISplitDiffBlock *block){
+          block.companionRange = deletedLine;
+        }];
+      }*/
+
+      if (insertedLines.count < deletedLines.count) {
+        NSRange insertedLine = insertedLines.lastObject.rangeValue;
+
+        NSRange deletedLinesUnion;
+        for (NSUInteger i = 0; i < deletedLines.count; i++) {
+          NSRange deletedLine = deletedLines[i].rangeValue;
+          deletedLinesUnion = i == 0 ? deletedLine : NSUnionRange(deletedLinesUnion, deletedLine);
+        }
+
+        [self.rightTextView.textStorage updateSplitDiffBlockInRange:insertedLine usingBlock:^(GISplitDiffBlock *block){
+          block.companionRange = deletedLinesUnion;
+        }];
+      } else if (insertedLines.count != 0) {
+        NSRange deletedLine = deletedLines.lastObject.rangeValue;
+
+        NSRange insertedLinesUnion;
+        for (NSUInteger i = 0; i < insertedLines.count; i++) {
+          NSRange insertedLine = insertedLines[i].rangeValue;
+          insertedLinesUnion = i == 0 ? insertedLine : NSUnionRange(insertedLinesUnion, insertedLine);
+        }
+
+        [self.leftTextView.textStorage updateSplitDiffBlockInRange:deletedLine usingBlock:^(GISplitDiffBlock *block){
+          block.companionRange = insertedLinesUnion;
+        }];
+      }
+
+      [deletedLines removeAllObjects];
+      [insertedLines removeAllObjects];
+
+
+      /*if (insertedLine.location == NSNotFound || deletedLines.count == 0) {
+        [deletedLines removeAllObjects];
+        insertedLine = NSMakeRange(NSNotFound, 0);
+        return;
+      }
+
+      NSRange companionRange = NSMakeRange(NSNotFound, 0);
+      for (NSValue *value in deletedLines) {
+        NSRange range = value.rangeValue;
+        companionRange = companionRange.location == NSNotFound ? range : NSUnionRange(companionRange, range);
+      }
+      [deletedLines removeAllObjects];
+*/
+//      NSMutableParagraphStyle *paragraphStyle = [[self.rightTextView.textStorage attribute:NSParagraphStyleAttributeName atIndex:insertedLine.location longestEffectiveRange:NULL inRange:insertedLine] mutableCopy];
+//      NSMutableArray *textBlocks = [paragraphStyle.textBlocks mutableCopy];
+//      NSUInteger blockIndex = [textBlocks indexOfObjectPassingTest:^(NSTextBlock *obj, NSUInteger idx, BOOL *stop) {
+//        return [obj isKindOfClass:GISplitDiffLineBlock.class];
+//      }];
+//      if (blockIndex == NSNotFound) { return; }
+//      textBlocks[blockIndex] = [(GISplitDiffLineBlock *)textBlocks[blockIndex] unionCompanionRange:companionRange];
+//      paragraphStyle.textBlocks = textBlocks;
+//      [self.rightTextView.textStorage addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:insertedLine];
+    };
+
+    /*void(^commitInsertedLine)(NSRange) = ^(NSRange companionRange){
+      insertedLine = companionRange;
+
+      if (deletedLines.count == 0) {
+        return;
+      }
+
+      NSRange deletedLine = deletedLines[0].rangeValue;
+      if (deletedLines.count > 1) {
+        [deletedLines removeObjectAtIndex:0];
+      }
+
+      NSMutableParagraphStyle *paragraphStyle = [[self.leftTextView.textStorage attribute:NSParagraphStyleAttributeName atIndex:deletedLine.location longestEffectiveRange:NULL inRange:deletedLine] mutableCopy];
+      NSMutableArray *textBlocks = [paragraphStyle.textBlocks mutableCopy];
+      NSUInteger blockIndex = [textBlocks indexOfObjectPassingTest:^(NSTextBlock *obj, NSUInteger idx, BOOL *stop) {
+        return [obj isKindOfClass:GISplitDiffLineBlock.class];
+      }];
+      if (blockIndex == NSNotFound) { NSLog(@"!"); return; }
+      textBlocks[blockIndex] = [(GISplitDiffLineBlock *)textBlocks[blockIndex] unionCompanionRange:companionRange];
+      paragraphStyle.textBlocks = textBlocks;
+      [self.leftTextView.textStorage addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:deletedLine];
+    };*/
+
+    /*void(^commitHighlightWithInsertedLine)(NSRange) = ^(NSRange insertedLine){
+      if (insertedLine.location == NSNotFound || deletedLines.count == 0) {
+        [deletedLines removeAllObjects];
+        return;
+      }
+
+      NSRange deletedLine = [deletedLines[0] rangeValue];
+      [deletedLines removeObjectAtIndex:0];
+
+      NSString *beforeString = [self.leftTextView.textStorage.string substringWithRange:deletedLine];
+      NSString *afterString = [self.rightTextView.textStorage.string substringWithRange:insertedLine];
+      NSRange beforeRange, afterRange;
+      GIComputeModifiedRanges(beforeString, &beforeRange, afterString, &afterRange);
+
+      [self.leftTextView.textStorage addAttribute:NSBackgroundColorAttributeName value:GIDiffViewDeletedHighlightColor range:NSMakeRange(deletedLine.location + beforeRange.location, beforeRange.length)];
+      [self.rightTextView.textStorage addAttribute:NSBackgroundColorAttributeName value:GIDiffViewAddedHighlightColor range:NSMakeRange(insertedLine.location + afterRange.location, afterRange.length)];
+    };*/
+
+    [self.patch enumerateUsingBeginHunkHandler:^(NSUInteger oldLineNumber, NSUInteger oldLineCount, NSUInteger newLineNumber, NSUInteger newLineCount) {
+      finishPendingPair();
+
+      NSString *string = [NSString stringWithFormat:@"@@ -%lu,%lu +%lu,%lu @@\n", oldLineNumber, oldLineCount, newLineNumber, newLineCount];
+
+      NSMutableDictionary *attributes = [GIDiffViewLineAttributes mutableCopy];
+      NSMutableParagraphStyle *paragraphStyle = [attributes[NSParagraphStyleAttributeName] mutableCopy] ?: [[NSMutableParagraphStyle alloc] init];
+      paragraphStyle.textBlocks = @[ [[GISplitDiffSeparatorBlock alloc] init] ];
+      attributes[NSParagraphStyleAttributeName] = paragraphStyle;
+      attributes[NSForegroundColorAttributeName] = GIDiffViewSeparatorTextColor;
+
+      [self.leftTextView.textStorage appendString:string withAttributes:attributes];
+      [self.rightTextView.textStorage appendString:@"\n" withAttributes:attributes];
+    } lineHandler:^(GCLineDiffChange change, NSUInteger oldLineNumber, NSUInteger newLineNumber, const char* contentBytes, NSUInteger contentLength) {
+      NSString *string = [[NSString alloc] initWithBytesNoCopy:(void *)contentBytes length:contentLength encoding:NSUTF8StringEncoding freeWhenDone:NO];
+      if ([string characterAtIndex:string.length - 1] != '\n') {
+        string = [string stringByAppendingString:GIDiffViewMissingNewlinePlaceholder];
+      } else if (!string) {
+        string = @"<LINE IS NOT VALID UTF-8>\n";
+        GC_DEBUG_UNREACHABLE();
+      }
+
+      NSMutableDictionary *leftAttributes = [GIDiffViewLineAttributes mutableCopy];
+      NSMutableParagraphStyle *leftParagraphStyle = [leftAttributes[NSParagraphStyleAttributeName] mutableCopy] ?: [[NSMutableParagraphStyle alloc] init];
+      leftParagraphStyle.textBlocks = @[ [[GISplitDiffLineBlock alloc] initWithChange:(change == kGCLineDiffChange_Added ? kGCLineDiffChange_Unmodified : change) lineNumber:oldLineNumber] ];
+      leftAttributes[NSParagraphStyleAttributeName] = leftParagraphStyle;
+
+      NSMutableDictionary *rightAttributes = [GIDiffViewLineAttributes mutableCopy];
+      NSMutableParagraphStyle *rightParagraphStyle = [rightAttributes[NSParagraphStyleAttributeName] mutableCopy] ?: [[NSMutableParagraphStyle alloc] init];
+      rightParagraphStyle.textBlocks = @[ [[GISplitDiffLineBlock alloc] initWithChange:(change == kGCLineDiffChange_Deleted ? kGCLineDiffChange_Unmodified : change) lineNumber:newLineNumber] ];
+      rightAttributes[NSParagraphStyleAttributeName] = rightParagraphStyle;
+
+      switch (change) {
+        case kGCLineDiffChange_Unmodified:
+          finishPendingPair();
+          [self.leftTextView.textStorage appendString:string withAttributes:leftAttributes];
+          [self.rightTextView.textStorage appendString:string withAttributes:rightAttributes];
+          break;
+
+        case kGCLineDiffChange_Deleted:
+          [self.leftTextView.textStorage appendString:string withAttributes:leftAttributes];
+          [deletedLines addObject:[NSValue valueWithRange:NSMakeRange(self.leftTextView.textStorage.length - string.length, string.length)]];
+          break;
+
+        case kGCLineDiffChange_Added:
+          [self.rightTextView.textStorage appendString:string withAttributes:rightAttributes];
+          [insertedLines addObject:[NSValue valueWithRange:NSMakeRange(self.rightTextView.textStorage.length - string.length, string.length)]];
+          break;
+      }
+    } endHunkHandler:^{
+      finishPendingPair();
+    }];
+  } else {
+    [self.leftTextView.textStorage deleteAllCharacters];
+    [self.rightTextView.textStorage deleteAllCharacters];
+  }
+  [self.leftTextView.textStorage endEditing];
+  [self.rightTextView.textStorage endEditing];
 }
 
 - (CGFloat)updateLayoutForWidth:(CGFloat)width {
-  if (self.patch && (NSInteger)width != (NSInteger)_size.width) {
+  [self setFrameSize:NSMakeSize(width, self.frame.size.height)];
+  [self.leftTextView sizeToFit];
+  [self.rightTextView sizeToFit];
+  //[self.rightTextView setFrameOrigin:NSZeroPoint];
+  return fmax(self.leftTextView.frame.size.height, self.rightTextView.frame.size.height);
+  /*if (self.patch && (NSInteger)width != (NSInteger)_size.width) {
     [_lines removeAllObjects];
 
     CGFloat lineWidth = floor((width - 2 * kTextLineNumberMargin - 2 * kTextInsetLeft - 2 * kTextInsetRight) / 2);
@@ -346,10 +877,10 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
         }];
     _size = NSMakeSize(width, _lines.count * GIDiffViewLineHeight + kTextBottomPadding);
   }
-  return _size.height;
+  return _size.height;*/
 }
 
-- (void)drawRect:(NSRect)dirtyRect {
+/*- (void)drawRect:(NSRect)dirtyRect {
   NSRect bounds = self.bounds;
   CGFloat offset = floor(bounds.size.width / 2);
   CGContextRef context = [[NSGraphicsContext currentContext] CGContext];
@@ -502,7 +1033,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
                cursor:[NSCursor IBeamCursor]];
   [self addCursorRect:NSMakeRect(offset + kTextLineNumberMargin + kTextInsetLeft, 0, bounds.size.width - offset - kTextLineNumberMargin - kTextInsetLeft, bounds.size.height)
                cursor:[NSCursor IBeamCursor]];
-}
+}*/
 
 - (BOOL)hasSelection {
   return _selectedLines.count || _selectedText.length;
@@ -580,6 +1111,7 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
   }
 }
 
+/*
 - (BOOL)validateUserInterfaceItem:(id<NSValidatedUserInterfaceItem>)item {
   if (item.action == @selector(copy:)) {
     return [self hasSelection];
@@ -815,6 +1347,6 @@ typedef NS_ENUM(NSUInteger, SelectionMode) {
   NSString* text;
   [self getSelectedText:&text oldLines:NULL newLines:NULL];
   [[NSPasteboard generalPasteboard] setString:text forType:NSPasteboardTypeString];
-}
+}*/
 
 @end
