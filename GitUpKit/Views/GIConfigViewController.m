@@ -179,8 +179,6 @@ static NSMutableDictionary* _patternHelp = nil;
           result = NSOrderedAscending;
         } else if (option1.level > option2.level) {
           result = NSOrderedDescending;
-        } else {
-          XLOG_DEBUG_UNREACHABLE();
         }
       }
       return result;
