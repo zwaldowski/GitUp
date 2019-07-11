@@ -13,6 +13,8 @@
 		74EDB5D61B84E06500F00E79 /* GCOrderedSet-Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 74EDB5D51B84E06500F00E79 /* GCOrderedSet-Tests.m */; };
 		74EDB5D71B8517F500F00E79 /* GCOrderedSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 74EDB5D11B84D4C400F00E79 /* GCOrderedSet.m */; };
 		DBCF675722CAE12500969D4A /* NSColor+GINamedColors.h in Headers */ = {isa = PBXBuildFile; fileRef = DBDFBC1A22B61290003EEC6C /* NSColor+GINamedColors.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		DBDBDCAD22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.h in Headers */ = {isa = PBXBuildFile; fileRef = DBDBDCAB22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		DBDBDCAF22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDBDCAC22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.m */; };
 		DBDFBC0C22B610F1003EEC6C /* Interface.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDFBC0B22B610F1003EEC6C /* Interface.xcassets */; };
 		DBDFBC0F22B61135003EEC6C /* NSBundle+GitUpKit.h in Headers */ = {isa = PBXBuildFile; fileRef = DBDFBC0D22B61135003EEC6C /* NSBundle+GitUpKit.h */; };
 		DBDFBC1022B61135003EEC6C /* NSBundle+GitUpKit.h in Headers */ = {isa = PBXBuildFile; fileRef = DBDFBC0D22B61135003EEC6C /* NSBundle+GitUpKit.h */; };
@@ -426,6 +428,8 @@
 		74EDB5D01B84D4C400F00E79 /* GCOrderedSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCOrderedSet.h; sourceTree = "<group>"; };
 		74EDB5D11B84D4C400F00E79 /* GCOrderedSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCOrderedSet.m; sourceTree = "<group>"; };
 		74EDB5D51B84E06500F00E79 /* GCOrderedSet-Tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GCOrderedSet-Tests.m"; sourceTree = "<group>"; };
+		DBDBDCAB22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GIUnifiedDiffView_TextKit.h; sourceTree = "<group>"; };
+		DBDBDCAC22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GIUnifiedDiffView_TextKit.m; sourceTree = "<group>"; };
 		DBDFBC0B22B610F1003EEC6C /* Interface.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Interface.xcassets; sourceTree = "<group>"; };
 		DBDFBC0D22B61135003EEC6C /* NSBundle+GitUpKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSBundle+GitUpKit.h"; sourceTree = "<group>"; };
 		DBDFBC0E22B61135003EEC6C /* NSBundle+GitUpKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSBundle+GitUpKit.m"; sourceTree = "<group>"; };
@@ -1045,6 +1049,8 @@
 				E2891AB21AE15BB600E58C77 /* GISplitDiffView.m */,
 				E2C9FF861AA510170051B2AE /* GIUnifiedDiffView.h */,
 				E2C9FF871AA510170051B2AE /* GIUnifiedDiffView.m */,
+				DBDBDCAB22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.h */,
+				DBDBDCAC22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.m */,
 			);
 			path = Interface;
 			sourceTree = "<group>";
@@ -1176,6 +1182,7 @@
 				E267E2371B84DC3900BAB377 /* GIDiffContentsViewController.h in Headers */,
 				E267E2381B84DC3900BAB377 /* GIDiffFilesViewController.h in Headers */,
 				E267E2391B84DC3900BAB377 /* GISnapshotListViewController.h in Headers */,
+				DBDBDCAD22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.h in Headers */,
 				E267E23A1B84DC3900BAB377 /* GIUnifiedReflogViewController.h in Headers */,
 				E267E24D1B84DC7D00BAB377 /* GIAdvancedCommitViewController.h in Headers */,
 				E267E24E1B84DC7D00BAB377 /* GICommitRewriterViewController.h in Headers */,
@@ -1521,6 +1528,7 @@
 				E267E2621B84DCA100BAB377 /* GIQuickViewController.m in Sources */,
 				E267E2631B84DCA100BAB377 /* GISimpleCommitViewController.m in Sources */,
 				E267E2641B84DCA100BAB377 /* GIStashListViewController.m in Sources */,
+				DBDBDCAF22D10E12007CEEB8 /* GIUnifiedDiffView_TextKit.m in Sources */,
 				E267E2D61B84F2BE00BAB377 /* XLASLLogger.m in Sources */,
 				E267E2D71B84F2BE00BAB377 /* XLCallbackLogger.m in Sources */,
 				E267E2D81B84F2BE00BAB377 /* XLFacility.m in Sources */,

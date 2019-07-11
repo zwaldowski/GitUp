@@ -200,6 +200,7 @@ static NSImage* _untrackedImage = nil;
 }
 
 - (void)_viewBoundsDidChange:(NSNotification*)notification {
+//  NSLog(@"!");
   if ([_delegate respondsToSelector:@selector(diffContentsViewControllerDidScroll:)]) {
     [_delegate diffContentsViewControllerDidScroll:self];
   }
@@ -222,14 +223,17 @@ static NSImage* _untrackedImage = nil;
 }
 
 - (Class)_diffViewClassForChange:(GCFileDiffChange)change {
+  Class unified = [GIUnifiedDiffView_TextKit class];
+  Class split = [GISplitDiffView class];
+
   NSInteger mode = [[NSUserDefaults standardUserDefaults] integerForKey:GIDiffContentsViewControllerUserDefaultKey_DiffViewMode];
   if (mode == 0) {
     if ((change == kGCFileDiffChange_Untracked) || (change == kGCFileDiffChange_Added) || (change == kGCFileDiffChange_Deleted)) {
-      return [GIUnifiedDiffView class];
+      return unified;
     }
-    return self.view.bounds.size.width < kMinSplitDiffViewWidth ? [GIUnifiedDiffView class] : [GISplitDiffView class];
+    return self.view.bounds.size.width < kMinSplitDiffViewWidth ? unified : split;
   }
-  return mode > 0 ? [GISplitDiffView class] : [GIUnifiedDiffView class];
+  return mode > 0 ? split : unified;
 }
 
 - (void)_updateDiffViews {
@@ -257,16 +261,19 @@ static NSImage* _untrackedImage = nil;
 - (void)viewDidResize {
   if (self.viewVisible && !self.liveResizing) {
     [self _updateDiffViews];
-    [NSAnimationContext beginGrouping];
-    [[NSAnimationContext currentContext] setDuration:0.0];  // Prevent animations in case the view is actually not on screen yet (e.g. in a hidden tab)
-    [_tableView noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [self numberOfRowsInTableView:_tableView])]];
-    [NSAnimationContext endGrouping];
+    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+      context.duration = 0;
+      [_tableView noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [self numberOfRowsInTableView:_tableView])]];
+    } completionHandler:NULL];
   }
 }
 
 - (void)viewDidFinishLiveResize {
   [self _updateDiffViews];
-  [_tableView noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [self numberOfRowsInTableView:_tableView])]];
+  [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+    context.duration = 0;
+    [_tableView noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [self numberOfRowsInTableView:_tableView])]];
+  } completionHandler:NULL];
 }
 
 // WARNING: This is called *several* times when the default has been changed
@@ -304,6 +311,7 @@ static NSImage* _untrackedImage = nil;
     }
 
     NSMutableArray* array = [[NSMutableArray alloc] init];
+    NSRect defaultViewFrame = NSMakeRect(0, 0, self.tableView.tableColumns[0].width, self.tableView.rowHeight);
     for (GCDiffDelta* delta in _deltas) {
       GCIndexConflict* conflict = [_conflicts objectForKey:delta.canonicalPath];
       GIDiffContentData* data = nil;
@@ -330,7 +338,7 @@ static NSImage* _untrackedImage = nil;
             if (patch.empty) {
               data.empty = !isBinary;
             } else {
-              GIDiffView* diffView = [[[self _diffViewClassForChange:delta.change] alloc] initWithFrame:NSZeroRect];
+              GIDiffView* diffView = [[[self _diffViewClassForChange:delta.change] alloc] initWithFrame:defaultViewFrame];
               diffView.delegate = self;
               diffView.patch = patch;
               data.diffView = diffView;
@@ -385,16 +393,16 @@ static NSImage* _untrackedImage = nil;
 }
 
 - (void)setTopVisibleDelta:(GCDiffDelta*)delta offset:(CGFloat)offset {
-  NSInteger row = _headerView ? 1 : 0;
-  for (GIDiffContentData* data in _data) {
-    if ([data.delta.canonicalPath isEqualToString:delta.canonicalPath]) {  // Don't use -isEqualToDelta:
-      NSRect rect = [_tableView rectOfRow:row];
-      NSClipView* clipView = (NSClipView*)_tableView.superview;
-      [clipView setBoundsOrigin:NSMakePoint(0, rect.origin.y + offset)];  // Work around -[NSView scrollPoint:] bug on OS X 10.10 where target is not always reached
-      break;
-    }
-    row += 2;
-  }
+//  NSInteger row = _headerView ? 1 : 0;
+//  for (GIDiffContentData* data in _data) {
+//    if ([data.delta.canonicalPath isEqualToString:delta.canonicalPath]) {  // Don't use -isEqualToDelta:
+//      NSRect rect = [_tableView rectOfRow:row];
+//      NSClipView* clipView = (NSClipView*)_tableView.superview;
+//      [clipView setBoundsOrigin:NSMakePoint(0, rect.origin.y + offset)];  // Work around -[NSView scrollPoint:] bug on OS X 10.10 where target is not always reached
+//      break;
+//    }
+//    row += 2;
+//  }
 }
 
 - (BOOL)getSelectedLinesForDelta:(GCDiffDelta*)delta oldLines:(NSIndexSet**)oldLines newLines:(NSIndexSet**)newLines {
@@ -660,6 +668,15 @@ static inline NSString* _StringFromFileMode(GCFileMode mode) {
   if ([_delegate respondsToSelector:@selector(diffContentsViewControllerDidChangeSelection:)]) {
     [_delegate diffContentsViewControllerDidChangeSelection:self];
   }
+}
+
+- (void)diffView:(GIDiffView *)view didChangeContentHeight:(CGFloat)newHeight {
+//  NSInteger row = [_tableView rowForView:view];
+//  if (row < 0) { return; }
+//  [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+//    context.duration = 0;
+//    [_tableView noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndex:row]];
+//  } completionHandler:NULL];
 }
 
 #pragma mark - Actions

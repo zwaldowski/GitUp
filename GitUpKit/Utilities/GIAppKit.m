@@ -124,6 +124,21 @@ static const void* _associatedObjectCommitKey = &_associatedObjectCommitKey;
 
 @implementation GITextView
 
+- (void)scrollPoint:(NSPoint)point {
+//  [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+//    context.duration = 0;
+//    context.allowsImplicitAnimation = NO;
+//    [super scrollPoint:point];
+//  } completionHandler:NULL];
+}
+
+- (void)setFrameOrigin:(NSPoint)newOrigin {
+  if (!NSEqualPoints(newOrigin, NSZeroPoint)) {
+    NSLog(@"!");
+  }
+  [super setFrameOrigin:newOrigin];
+}
+
 - (void)doCommandBySelector:(SEL)selector {
   if (selector == @selector(insertTab:)) {
     [self.window selectNextKeyView:nil];
@@ -134,6 +149,18 @@ static const void* _associatedObjectCommitKey = &_associatedObjectCommitKey;
     return;
   }
   [super doCommandBySelector:selector];
+}
+
+- (void)insertText:(id)string replacementRange:(NSRange)replacementRange {
+  if (!self.isEditable && !self.hasMarkedText) {
+    NSString *incomingString = [string isKindOfClass:[NSAttributedString class]] ? [string string] : string;
+    if ([incomingString isEqual:@" "]) {
+      [self.nextResponder tryToPerform:@selector(keyDown:) with:self.window.currentEvent];
+      return;
+    }
+  }
+
+  [super insertText:string replacementRange:replacementRange];
 }
 
 @end

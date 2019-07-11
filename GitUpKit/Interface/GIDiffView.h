@@ -19,6 +19,8 @@
 
 @protocol GIDiffViewDelegate <NSObject>
 - (void)diffViewDidChangeSelection:(GIDiffView*)view;
+@optional
+- (void)diffView:(GIDiffView*)view didChangeContentHeight:(CGFloat)newHeight;
 @end
 
 // Base class
@@ -28,6 +30,19 @@
 
 @property(nonatomic, assign) id<GIDiffViewDelegate> delegate;
 @property(nonatomic, strong) NSColor* backgroundColor;
+@property(nonatomic, strong) GCDiffPatch* patch;
+@property(nonatomic, readonly, getter=isEmpty) BOOL empty;
+- (CGFloat)updateLayoutForWidth:(CGFloat)width;
+
+@property(nonatomic, readonly) BOOL hasSelection;
+@property(nonatomic, readonly) BOOL hasSelectedText;
+@property(nonatomic, readonly) BOOL hasSelectedLines;
+- (void)clearSelection;
+- (void)getSelectedText:(NSString**)text oldLines:(NSIndexSet**)oldLines newLines:(NSIndexSet**)newLines;
+@end
+
+@protocol GIDiffView <NSObject, NSUserInterfaceValidations>
+@property(nonatomic, weak) id<GIDiffViewDelegate> delegate;
 @property(nonatomic, strong) GCDiffPatch* patch;
 @property(nonatomic, readonly, getter=isEmpty) BOOL empty;
 - (CGFloat)updateLayoutForWidth:(CGFloat)width;
