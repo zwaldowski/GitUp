@@ -13,22 +13,17 @@
 		31CD50E3203E2E2800360B3A /* ToolbarItemWrapperView.m in Sources */ = {isa = PBXBuildFile; fileRef = 31CD50E2203E2E2800360B3A /* ToolbarItemWrapperView.m */; };
 		DBC54D9D234F09BA0002D10C /* GitUp.sdef in Resources */ = {isa = PBXBuildFile; fileRef = DBC54D9A234F09BA0002D10C /* GitUp.sdef */; };
 		DBC54DAB234F0B0C0002D10C /* GitUp.sdef in Sources */ = {isa = PBXBuildFile; fileRef = DBC54D9A234F09BA0002D10C /* GitUp.sdef */; };
-		E212A6DE1B92100E00F62B18 /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E212A6DD1B92100E00F62B18 /* libiconv.dylib */; };
+		DBC54DD2234F14FF0002D10C /* GitUpKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E28A16E01B87021600218332 /* GitUpKit.framework */; };
+		DBC54DD3234F14FF0002D10C /* GitUpKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E28A16E01B87021600218332 /* GitUpKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E21739F71A5080DD00EC6777 /* DocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = E21739F61A5080DD00EC6777 /* DocumentController.m */; };
 		E21DCAEB1B253847006424E8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E21DCAEA1B253847006424E8 /* main.m */; };
 		E21DCAF31B253919006424E8 /* gitup in Copy Tool */ = {isa = PBXBuildFile; fileRef = E21DCAE81B253847006424E8 /* gitup */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		E21DCAF51B254117006424E8 /* install.sh in Copy Tool */ = {isa = PBXBuildFile; fileRef = E21DCAF41B254112006424E8 /* install.sh */; };
-		E21DCAF61B254F33006424E8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2C338D819F85C3400063D95 /* Foundation.framework */; };
-		E21DCAF71B254F53006424E8 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E28200AC1A7D71EE00DA4096 /* CoreServices.framework */; };
-		E21DCAF81B255471006424E8 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E2C3394419F85D4B00063D95 /* libz.dylib */; };
-		E23C9B291B92104500ACA5A9 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2B14B561A88102C00003E64 /* Security.framework */; };
 		E25EBCEB1AA3F8B700D3AF44 /* Application.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E25EBCEA1AA3F8B700D3AF44 /* Application.xcassets */; };
 		E2653D251A5B2FBD006A9871 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2653D241A5B2FBD006A9871 /* Sparkle.framework */; };
 		E267E1F31B84D93300BAB377 /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E2653D241A5B2FBD006A9871 /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E267E26B1B84E07E00BAB377 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2B14B561A88102C00003E64 /* Security.framework */; };
 		E267E2741B84E42A00BAB377 /* Help.plist in Resources */ = {isa = PBXBuildFile; fileRef = E2BDA0671AD47A2F00E69729 /* Help.plist */; };
-		E28A16E51B87023200218332 /* GitUpKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E28A16E01B87021600218332 /* GitUpKit.framework */; };
-		E28A16E61B87023C00218332 /* GitUpKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E28A16E01B87021600218332 /* GitUpKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E2A5BE701A814970008DD47F /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = E2A5BE6E1A814970008DD47F /* Localizable.strings */; };
 		E2C338B219F8562F00063D95 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E2C338B119F8562F00063D95 /* AppDelegate.m */; };
 		E2C338B419F8562F00063D95 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E2C338B319F8562F00063D95 /* main.m */; };
@@ -61,13 +56,6 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
-		E21753051B9150AE00BE234A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E28A16DA1B87021600218332 /* GitUpKit.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = E267E1A71B84D6C500BAB377;
-			remoteInfo = GitUpKit;
-		};
 		E217538A1B91641F00BE234A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E28A16DA1B87021600218332 /* GitUpKit.xcodeproj */;
@@ -118,8 +106,8 @@
 			dstSubfolderSpec = 10;
 			files = (
 				E267E1F31B84D93300BAB377 /* Sparkle.framework in Copy Frameworks */,
+				DBC54DD3234F14FF0002D10C /* GitUpKit.framework in Copy Frameworks */,
 				E2E3C9A51D77228F00AA9A62 /* HockeySDK.framework in Copy Frameworks */,
-				E28A16E61B87023C00218332 /* GitUpKit.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -134,6 +122,7 @@
 		31CD50E1203E2E2800360B3A /* ToolbarItemWrapperView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ToolbarItemWrapperView.h; sourceTree = "<group>"; };
 		31CD50E2203E2E2800360B3A /* ToolbarItemWrapperView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ToolbarItemWrapperView.m; sourceTree = "<group>"; };
 		DBC54D9A234F09BA0002D10C /* GitUp.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = GitUp.sdef; sourceTree = "<group>"; };
+		DBC54DB0234F0B730002D10C /* Tool.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tool.entitlements; sourceTree = "<group>"; };
 		E212A6DD1B92100E00F62B18 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
 		E21739F51A5080DD00EC6777 /* DocumentController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DocumentController.h; sourceTree = "<group>"; };
 		E21739F61A5080DD00EC6777 /* DocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DocumentController.m; sourceTree = "<group>"; };
@@ -178,11 +167,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E23C9B291B92104500ACA5A9 /* Security.framework in Frameworks */,
-				E21DCAF71B254F53006424E8 /* CoreServices.framework in Frameworks */,
-				E21DCAF61B254F33006424E8 /* Foundation.framework in Frameworks */,
-				E212A6DE1B92100E00F62B18 /* libiconv.dylib in Frameworks */,
-				E21DCAF81B255471006424E8 /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -191,10 +175,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				E2E3C9A21D771E9D00AA9A62 /* SystemConfiguration.framework in Frameworks */,
+				DBC54DD2234F14FF0002D10C /* GitUpKit.framework in Frameworks */,
 				165C32B61B95739700D2F894 /* QuartzCore.framework in Frameworks */,
 				E2C338D719F85C2E00063D95 /* Cocoa.framework in Frameworks */,
 				E267E26B1B84E07E00BAB377 /* Security.framework in Frameworks */,
-				E28A16E51B87023200218332 /* GitUpKit.framework in Frameworks */,
 				E2E3C9A41D77227F00AA9A62 /* HockeySDK.framework in Frameworks */,
 				E2653D251A5B2FBD006A9871 /* Sparkle.framework in Frameworks */,
 			);
@@ -203,6 +187,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DBC54DD1234F14FF0002D10C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E20A52341A80D1BF003546C3 /* Framework and Libraries */ = {
 			isa = PBXGroup;
 			children = (
@@ -226,6 +217,7 @@
 			children = (
 				E21DCAF41B254112006424E8 /* install.sh */,
 				E21DCAEA1B253847006424E8 /* main.m */,
+				DBC54DB0234F0B730002D10C /* Tool.entitlements */,
 			);
 			path = Tool;
 			sourceTree = "<group>";
@@ -263,6 +255,7 @@
 				E20A52341A80D1BF003546C3 /* Framework and Libraries */,
 				E27E37551B86F670000A551A /* Xcode-Configurations */,
 				E2C338AC19F8562F00063D95 /* Products */,
+				DBC54DD1234F14FF0002D10C /* Frameworks */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -330,7 +323,6 @@
 				DBC54DAA234F0AC10002D10C /* PBXBuildRule */,
 			);
 			dependencies = (
-				E21753061B9150AE00BE234A /* PBXTargetDependency */,
 			);
 			name = Tool;
 			productName = Tool;
@@ -469,11 +461,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E21753061B9150AE00BE234A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = GitUpKit;
-			targetProxy = E21753051B9150AE00BE234A /* PBXContainerItemProxy */;
-		};
 		E21DCAF11B2538C5006424E8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = E21DCAE71B253847006424E8 /* Tool */;
@@ -528,13 +515,10 @@
 		E21DCAEC1B253847006424E8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Tool/Tool.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
-				HEADER_SEARCH_PATHS = "../GitUpKit/Third-Party/libgit2/include";
-				OTHER_LDFLAGS = (
-					"$(BUILD_DIR)/$(CONFIGURATION)/libgit2.a",
-					"../GitUpKit/Third-Party/libssl/$(GITUP_PLATFORM)/lib/libcrypto.a",
-					"../GitUpKit/Third-Party/libssh2/$(GITUP_PLATFORM)/lib/libssh2.a",
-				);
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "co.gitup.mac.tool-debug";
 				PRODUCT_NAME = gitup;
 				SKIP_INSTALL = YES;
 			};
@@ -543,13 +527,10 @@
 		E21DCAED1B253847006424E8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Tool/Tool.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
-				HEADER_SEARCH_PATHS = "../GitUpKit/Third-Party/libgit2/include";
-				OTHER_LDFLAGS = (
-					"$(BUILD_DIR)/$(CONFIGURATION)/libgit2.a",
-					"../GitUpKit/Third-Party/libssl/$(GITUP_PLATFORM)/lib/libcrypto.a",
-					"../GitUpKit/Third-Party/libssh2/$(GITUP_PLATFORM)/lib/libssh2.a",
-				);
+				ENABLE_HARDENED_RUNTIME = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = co.gitup.mac.tool;
 				PRODUCT_NAME = gitup;
 				SKIP_INSTALL = YES;
 			};
