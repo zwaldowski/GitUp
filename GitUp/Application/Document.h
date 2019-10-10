@@ -21,12 +21,6 @@ typedef NS_ENUM(NSUInteger, CloneMode) {
   kCloneMode_Recursive
 };
 
-typedef NS_ENUM(NSUInteger, WindowModeID) {
-  kWindowModeID_Map = 0,
-  kWindowModeID_Commit,
-  kWindowModeID_Stashes
-};
-
 typedef NSString* WindowMode NS_STRING_ENUM;
 extern WindowMode const kWindowModeString_Map;
 extern WindowMode const kWindowModeString_Commit;
@@ -106,6 +100,5 @@ extern WindowMode const kWindowModeString_Stashes;
 @property(nonatomic, copy) WindowMode windowMode;
 @property(nonatomic, copy, readonly) NSString *windowModeDisplayName;
 
-- (BOOL)setWindowModeID:(WindowModeID)modeID;
 - (BOOL)shouldCloseDocument;
 @end

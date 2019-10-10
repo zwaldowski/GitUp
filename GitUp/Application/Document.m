@@ -20,6 +20,12 @@
 
 #import <GitUpKit/XLFacilityMacros.h>
 
+typedef NS_ENUM(NSUInteger, WindowModeID) {
+  kWindowModeID_Map = 0,
+  kWindowModeID_Commit,
+  kWindowModeID_Stashes
+};
+
 WindowMode const kWindowModeString_Map = @"map";
 #define kWindowModeString_Map_QuickView @"quickview"
 #define kWindowModeString_Map_Diff @"diff"
@@ -855,14 +861,6 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
 
 - (NSString *)windowModeDisplayName {
   return NSLocalizedString(_windowMode, nil);
-}
-
-- (BOOL)setWindowModeID:(WindowModeID)modeID {
-  if (!_mainWindow.attachedSheet && !_modeControl.hidden && _modeControl.enabled) {
-    [self _setWindowMode:_WindowModeStringFromID(modeID)];
-    return YES;
-  }
-  return NO;
 }
 
 - (BOOL)shouldCloseDocument {
