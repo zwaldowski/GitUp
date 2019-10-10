@@ -27,6 +27,11 @@ typedef NS_ENUM(NSUInteger, WindowModeID) {
   kWindowModeID_Stashes
 };
 
+typedef NSString* WindowMode NS_STRING_ENUM;
+extern WindowMode const kWindowModeString_Map;
+extern WindowMode const kWindowModeString_Commit;
+extern WindowMode const kWindowModeString_Stashes;
+
 @interface Document : NSDocument <NSUserInterfaceValidations>
 @property(nonatomic, strong) IBOutlet NSWindow* mainWindow;
 @property(nonatomic, strong) IBOutlet NSView* contentView;
@@ -98,7 +103,8 @@ typedef NS_ENUM(NSUInteger, WindowModeID) {
 @property(nonatomic, weak) IBOutlet NSButton* indexDiffsButton;
 
 @property(nonatomic) CloneMode cloneMode;
-@property(nonatomic, readonly) NSString* windowMode;
+@property(nonatomic, copy) WindowMode windowMode;
+@property(nonatomic, copy, readonly) NSString *windowModeDisplayName;
 
 - (BOOL)setWindowModeID:(WindowModeID)modeID;
 - (BOOL)shouldCloseDocument;

@@ -20,15 +20,15 @@
 
 #import <GitUpKit/XLFacilityMacros.h>
 
-#define kWindowModeString_Map @"map"
+WindowMode const kWindowModeString_Map = @"map";
 #define kWindowModeString_Map_QuickView @"quickview"
 #define kWindowModeString_Map_Diff @"diff"
 #define kWindowModeString_Map_Rewrite @"rewrite"
 #define kWindowModeString_Map_Split @"split"
 #define kWindowModeString_Map_Resolve @"resolve"
 #define kWindowModeString_Map_Config @"config"
-#define kWindowModeString_Commit @"commit"
-#define kWindowModeString_Stashes @"stashes"
+WindowMode const kWindowModeString_Commit = @"commit";
+WindowMode const kWindowModeString_Stashes = @"stashes";
 
 #define kSideViewIdentifier_Search @"search"
 #define kSideViewIdentifier_Tags @"tags"
@@ -53,7 +53,7 @@
 
 static NSDictionary* _helpPlist = nil;
 
-static inline NSString* _WindowModeStringFromID(WindowModeID mode) {
+NS_INLINE WindowMode _WindowModeStringFromID(WindowModeID mode) {
   switch (mode) {
     case kWindowModeID_Map:
       return kWindowModeString_Map;
@@ -62,22 +62,16 @@ static inline NSString* _WindowModeStringFromID(WindowModeID mode) {
     case kWindowModeID_Stashes:
       return kWindowModeString_Stashes;
   }
-  XLOG_DEBUG_UNREACHABLE();
-  return nil;
 }
 
-static inline WindowModeID _WindowModeIDFromString(NSString* mode) {
-  if ([mode isEqualToString:kWindowModeString_Map] || [mode isEqualToString:kWindowModeString_Map_QuickView] || [mode isEqualToString:kWindowModeString_Map_Diff] || [mode isEqualToString:kWindowModeString_Map_Rewrite] || [mode isEqualToString:kWindowModeString_Map_Split] || [mode isEqualToString:kWindowModeString_Map_Resolve] || [mode isEqualToString:kWindowModeString_Map_Config]) {
-    return kWindowModeID_Map;
-  }
+NS_INLINE WindowModeID _WindowModeIDFromString(WindowMode mode) {
   if ([mode isEqualToString:kWindowModeString_Commit]) {
     return kWindowModeID_Commit;
-  }
-  if ([mode isEqualToString:kWindowModeString_Stashes]) {
+  } else if ([mode isEqualToString:kWindowModeString_Stashes]) {
     return kWindowModeID_Stashes;
+  } else {
+    return kWindowModeID_Map;
   }
-  XLOG_DEBUG_UNREACHABLE();
-  return kWindowModeID_Map;
 }
 
 @implementation Document {
@@ -121,6 +115,7 @@ static inline WindowModeID _WindowModeIDFromString(NSString* mode) {
   BOOL _helpHEADDisabled;
   BOOL _indexing;
   BOOL _abortIndexing;
+  WindowMode _windowMode;
 }
 
 + (void)initialize {
@@ -791,7 +786,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
   [self _updateToolBar];
 }
 
-- (void)_setWindowMode:(NSString*)mode {
+- (void)_setWindowMode:(WindowMode)mode {
   if (![_windowMode isEqualToString:mode]) {
     if ([_windowMode isEqualToString:kWindowModeString_Map]) {
       if (![_mainWindow.firstResponder isKindOfClass:[NSWindow class]]) {
@@ -801,7 +796,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
       }
     }
 
-    _windowMode = mode;
+    _windowMode = [mode copy];
     [_mainTabView selectTabViewItemWithIdentifier:_windowMode];
     [_modeControl selectSegmentWithTag:_WindowModeIDFromString(_windowMode)];
 
@@ -844,6 +839,22 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
       [self _showHelpWithIdentifier:_windowMode];
     }
   }
+}
+
+- (WindowMode)windowMode {
+  // Restrict to non-modal modes
+  return _WindowModeStringFromID(_WindowModeIDFromString(_windowMode));
+}
+
+- (void)setWindowMode:(WindowMode)windowMode {
+  if (_mainWindow.attachedSheet || _modeControl.hidden || !_modeControl.enabled) {
+    return;
+  }
+  [self _setWindowMode:windowMode];
+}
+
+- (NSString *)windowModeDisplayName {
+  return NSLocalizedString(_windowMode, nil);
 }
 
 - (BOOL)setWindowModeID:(WindowModeID)modeID {
@@ -1125,8 +1136,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
 - (void)encodeRestorableStateWithCoder:(NSCoder*)coder {
   [super encodeRestorableStateWithCoder:coder];
 
-  // Restrict to non-modal modes
-  [coder encodeObject:_WindowModeStringFromID(_WindowModeIDFromString(_windowMode)) forKey:kRestorableStateKey_WindowMode];
+  [coder encodeObject:self.windowMode forKey:kRestorableStateKey_WindowMode];
 }
 
 - (void)restoreStateWithCoder:(NSCoder*)coder {

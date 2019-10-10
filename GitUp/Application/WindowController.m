@@ -31,7 +31,7 @@
 - (void)synchronizeWindowTitleWithDocumentName {
   [super synchronizeWindowTitleWithDocumentName];
 
-  NSString* title = [NSString stringWithFormat:@"%@ • %@", [(Document*)self.document displayName], NSLocalizedString([(Document*)self.document windowMode], nil)];
+  NSString* title = [NSString stringWithFormat:@"%@ • %@", [(Document*)self.document displayName], [(Document*)self.document windowModeDisplayName]];
   [[(Document*)self.document titleTextField] setStringValue:title];
 }
 
