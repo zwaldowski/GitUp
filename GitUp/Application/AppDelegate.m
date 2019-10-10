@@ -26,7 +26,6 @@
 #import "DocumentController.h"
 #import "Document.h"
 #import "Common.h"
-#import "ToolProtocol.h"
 #import "GARawTracker.h"
 
 #define __ENABLE_SUDDEN_TERMINATION__ 1
@@ -53,8 +52,6 @@
   NSURL* _authenticationURL;
   NSString* _authenticationUsername;
   NSString* _authenticationPassword;
-
-  CFMessagePortRef _messagePort;
 }
 
 + (void)initialize {
@@ -157,32 +154,6 @@
   } else {
     XLOG_VERBOSE(@"Successfully saved authentication in Keychain");
   }
-}
-
-- (void)_setDocumentWindowModeID:(NSArray*)arguments {
-  [(Document*)arguments[0] setWindowModeID:[arguments[1] unsignedIntegerValue]];
-}
-
-- (void)_openRepositoryWithURL:(NSURL*)url withCloneMode:(CloneMode)cloneMode windowModeID:(WindowModeID)windowModeID {
-  [[NSDocumentController sharedDocumentController] openDocumentWithContentsOfURL:url
-                                                                         display:YES
-                                                               completionHandler:^(NSDocument* document, BOOL documentWasAlreadyOpen, NSError* openError) {
-                                                                 if (document) {
-                                                                   if (documentWasAlreadyOpen) {
-                                                                     if ((NSUInteger)windowModeID != NSNotFound) {
-                                                                       [(Document*)document setWindowModeID:windowModeID];
-                                                                     }
-                                                                   } else {
-                                                                     [(Document*)document setCloneMode:cloneMode];
-                                                                     if ((NSUInteger)windowModeID != NSNotFound) {
-                                                                       XLOG_DEBUG_CHECK(cloneMode == kCloneMode_None);
-                                                                       [self performSelector:@selector(_setDocumentWindowModeID:) withObject:@[ document, @(windowModeID) ] afterDelay:0.1];  // TODO: Try to schedule *after* -[Document _documentDidOpen] has been called
-                                                                     }
-                                                                   }
-                                                                 } else {
-                                                                   [[NSDocumentController sharedDocumentController] presentError:openError];
-                                                                 }
-                                                               }];
 }
 
 - (void)_openDocument:(NSMenuItem*)sender {
@@ -389,22 +360,6 @@
   // First launch has completed
   [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kUserDefaultsKey_FirstLaunch];
 
-  // Create tool message port
-  CFMessagePortContext context = {0, (__bridge void*)self, NULL, NULL, NULL};
-  _messagePort = CFMessagePortCreateLocal(kCFAllocatorDefault, CFSTR(kToolPortName), _MessagePortCallBack, &context, NULL);
-  if (_messagePort) {
-    CFRunLoopSourceRef source = CFMessagePortCreateRunLoopSource(kCFAllocatorDefault, _messagePort, 0);
-    if (source) {
-      CFRunLoopAddSource(CFRunLoopGetMain(), source, kCFRunLoopDefaultMode);  // Don't use kCFRunLoopCommonModes on purpose
-      CFRelease(source);
-    } else {
-      XLOG_DEBUG_UNREACHABLE();
-    }
-  } else {
-    XLOG_ERROR(@"Failed creating message port for tool");
-    XLOG_DEBUG_UNREACHABLE();
-  }
-
   // Load theme preference
   NSString* theme = [[NSUserDefaults standardUserDefaults] stringForKey:kUserDefaultsKey_Theme];
   [self _applyTheme:theme];
@@ -466,42 +421,6 @@
 }
 
 #endif
-
-#pragma mark - Tool
-
-static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDataRef data, void* info) {
-  NSDictionary* input = [NSKeyedUnarchiver unarchiveObjectWithData:(__bridge NSData*)data];
-  XLOG_DEBUG_CHECK(input);
-  NSDictionary* output = [(__bridge AppDelegate*)info _processToolCommand:input];
-  XLOG_DEBUG_CHECK(output);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunguarded-availability"
-  // The deprecation for this method in the macOS 10.14 SDK marks the incorrect
-  // version for its introduction. However, it is useful to keep availability
-  // guards on in general. FB6233110
-  return CFBridgingRetain([NSKeyedArchiver archivedDataWithRootObject:output]);
-#pragma clang diagnostic pop
-}
-
-- (NSDictionary*)_processToolCommand:(NSDictionary*)input {
-  NSString* command = [input objectForKey:kToolDictionaryKey_Command];
-  NSString* repository = [[input objectForKey:kToolDictionaryKey_Repository] stringByStandardizingPath];
-  if (!command.length || !repository.length) {
-    return @{kToolDictionaryKey_Error : @"Invalid command"};
-  }
-  if ([command isEqualToString:@kToolCommand_Open]) {
-    [self _openRepositoryWithURL:[NSURL fileURLWithPath:repository] withCloneMode:kCloneMode_None windowModeID:NSNotFound];
-  } else if ([command isEqualToString:@kToolCommand_Map]) {
-    [self _openRepositoryWithURL:[NSURL fileURLWithPath:repository] withCloneMode:kCloneMode_None windowModeID:kWindowModeID_Map];
-  } else if ([command isEqualToString:@kToolCommand_Commit]) {
-    [self _openRepositoryWithURL:[NSURL fileURLWithPath:repository] withCloneMode:kCloneMode_None windowModeID:kWindowModeID_Commit];
-  } else if ([command isEqualToString:@kToolCommand_Stash]) {
-    [self _openRepositoryWithURL:[NSURL fileURLWithPath:repository] withCloneMode:kCloneMode_None windowModeID:kWindowModeID_Stashes];
-  } else {
-    return @{kToolDictionaryKey_Error : [NSString stringWithFormat:@"Unknown command '%@'", command]};
-  }
-  return @{};
-}
 
 #pragma mark - Actions
 

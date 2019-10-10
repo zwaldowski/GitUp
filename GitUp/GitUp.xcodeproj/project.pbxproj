@@ -130,7 +130,6 @@
 		E21DCAEA1B253847006424E8 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		E21DCAF41B254112006424E8 /* install.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = install.sh; sourceTree = "<group>"; };
 		E222FF7E1B9210F600507E77 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
-		E24306981B276D0B00CE8CCB /* ToolProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ToolProtocol.h; sourceTree = "<group>"; };
 		E25EBCEA1AA3F8B700D3AF44 /* Application.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Application.xcassets; sourceTree = "<group>"; };
 		E2653D241A5B2FBD006A9871 /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = "Third-Party/Sparkle.framework"; sourceTree = SOURCE_ROOT; };
 		E27E37561B86F670000A551A /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
@@ -247,7 +246,6 @@
 			isa = PBXGroup;
 			children = (
 				E28A16DA1B87021600218332 /* GitUpKit.xcodeproj */,
-				E24306981B276D0B00CE8CCB /* ToolProtocol.h */,
 				DBC54D9A234F09BA0002D10C /* GitUp.sdef */,
 				E21DCAE91B253847006424E8 /* Tool */,
 				E2C338AD19F8562F00063D95 /* Application */,
