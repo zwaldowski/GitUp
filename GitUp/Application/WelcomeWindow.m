@@ -12,7 +12,6 @@
 
 @interface AppDelegate (WelcomeWindow)
 - (IBAction)closeWelcomeWindow:(id)sender;
-- (void)_openRepositoryWithURL:(NSURL*)url withCloneMode:(CloneMode)cloneMode windowModeID:(WindowModeID)windowModeID;
 @end
 
 @interface WelcomeWindowView : NSView <NSDraggingDestination>
@@ -86,7 +85,7 @@
   self.receivingDrag = NO;
   
   NSURL *first = [self draggingItems:sender].firstObject;
-  [self.appDelegate _openRepositoryWithURL:first withCloneMode:kCloneMode_None windowModeID:NSNotFound];
+  [self.appDelegate openRepositoryWithURL:first completionHandler:NULL];
   
   return YES;
 }

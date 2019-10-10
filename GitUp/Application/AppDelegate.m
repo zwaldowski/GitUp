@@ -186,7 +186,7 @@
 }
 
 - (void)_openDocument:(NSMenuItem*)sender {
-  [self _openRepositoryWithURL:sender.representedObject withCloneMode:kCloneMode_None windowModeID:NSNotFound];
+  [self openRepositoryWithURL:sender.representedObject completionHandler:NULL];
 }
 
 - (void)_willShowRecentPopUpMenu:(NSNotification*)notification {
@@ -617,7 +617,7 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
     if (![[NSFileManager defaultManager] fileExistsAtPath:path followLastSymlink:NO] || [[NSFileManager defaultManager] moveItemAtPathToTrash:path error:&error]) {
       GCRepository* repository = [[GCRepository alloc] initWithNewLocalRepository:path bare:NO error:&error];
       if (repository) {
-        [self _openRepositoryWithURL:[NSURL fileURLWithPath:repository.workingDirectoryPath] withCloneMode:kCloneMode_None windowModeID:NSNotFound];
+        [self openRepositoryWithURL:[NSURL fileURLWithPath:repository.workingDirectoryPath] completionHandler:NULL];
       } else {
         [NSApp presentError:error];
       }
@@ -647,7 +647,11 @@ static CFDataRef _MessagePortCallBack(CFMessagePortRef local, SInt32 msgid, CFDa
           GCRepository* repository = [[GCRepository alloc] initWithNewLocalRepository:path bare:NO error:&error];
           if (repository) {
             if ([repository addRemoteWithName:@"origin" url:url error:&error]) {
-              [self _openRepositoryWithURL:[NSURL fileURLWithPath:repository.workingDirectoryPath] withCloneMode:(_cloneRecursiveButton.state ? kCloneMode_Recursive : kCloneMode_Default)windowModeID:NSNotFound];
+              NSURL *url = [NSURL fileURLWithPath:repository.workingDirectoryPath];
+              CloneMode cloneMode = _cloneRecursiveButton.state ? kCloneMode_Recursive : kCloneMode_Default;
+              [self openRepositoryWithURL:url completionHandler:^(Document *document){
+                document.cloneMode = cloneMode;
+              }];
             } else {
               [NSApp presentError:error];
               [[NSFileManager defaultManager] removeItemAtPath:path error:NULL];  // Ignore errors
