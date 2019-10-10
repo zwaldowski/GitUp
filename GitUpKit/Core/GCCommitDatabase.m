@@ -153,15 +153,15 @@ static int _CaseInsensitiveUTF8Compare(void* context, int length1, const void* b
     CFRelease(string2);
     CFRelease(string1);
   } else if (string1) {
-    result = 1;
+    result = kCFCompareGreaterThan;
     CFRelease(string1);
   } else if (string2) {
-    result = -1;
+    result = kCFCompareLessThan;
     CFRelease(string2);
   } else {
-    result = 0;
+    result = kCFCompareEqualTo;
   }
-  return result;
+  return (int)result;
 }
 
 - (BOOL)_initializeDatabase:(NSString*)path error:(NSError**)error {
