@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<dictionary title="GitUp Terminology" xmlns:xi="http://www.w3.org/2003/XInclude">
+  <suite name="Standard Suite" code="????" description="Common classes and commands for all applications.">
+    <xi:include href="file:///System/Library/ScriptingDefinitions/CocoaStandard.sdef" xpointer="xpointer(/dictionary/suite/node()[not((self::command and ((@name = 'make') or (@name = 'print') or (@name = 'save'))) or (self::enumeration and (@name = 'printing error handling')) or (self::record-type and (@name = 'print settings')))])"/>
+    <access-group identifier="co.gitup.mac.tool" />
+  </suite>
+  <suite name="GitUp Suite" code="GtUp" description="Classes and commands for GitUp.">
+    <cocoa name="GitUp" />
+    <access-group identifier="co.gitup.mac.tool" />
+    <enumeration name="window mode" code="wndm">
+      <enumerator name="Map" code="mapm" description="Map View">
+        <cocoa string-value="map"/>
+      </enumerator>
+      <enumerator name="Commit" code="comm" description="Commit View">
+        <cocoa string-value="commit"/>
+      </enumerator>
+      <enumerator name="Stashes" code="stsh" description="Stash View">
+        <cocoa string-value="stashes"/>
+      </enumerator>
+    </enumeration>
+    <class-extension extends="document" description="A GitUp repository.">
+      <cocoa class="Document" />
+      <synonym name="repository" />
+      <property name="mode" code="wndm" type="window mode" access="rw" description="The repository view mode.">
+        <cocoa key="windowMode" />
+      </property>
+    </class-extension>
+  </suite>
+</dictionary>

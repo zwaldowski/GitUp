@@ -11,6 +11,7 @@
 		0AE7F5F12312C1B000B06050 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0AE7F5ED2312C1B000B06050 /* InfoPlist.strings */; };
 		165C32B61B95739700D2F894 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 165C32B51B95739700D2F894 /* QuartzCore.framework */; };
 		31CD50E3203E2E2800360B3A /* ToolbarItemWrapperView.m in Sources */ = {isa = PBXBuildFile; fileRef = 31CD50E2203E2E2800360B3A /* ToolbarItemWrapperView.m */; };
+		DBC54D9D234F09BA0002D10C /* GitUp.sdef in Resources */ = {isa = PBXBuildFile; fileRef = DBC54D9A234F09BA0002D10C /* GitUp.sdef */; };
 		E212A6DE1B92100E00F62B18 /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E212A6DD1B92100E00F62B18 /* libiconv.dylib */; };
 		E21739F71A5080DD00EC6777 /* DocumentController.m in Sources */ = {isa = PBXBuildFile; fileRef = E21739F61A5080DD00EC6777 /* DocumentController.m */; };
 		E21DCAEB1B253847006424E8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E21DCAEA1B253847006424E8 /* main.m */; };
@@ -114,6 +115,7 @@
 		165C32B51B95739700D2F894 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		31CD50E1203E2E2800360B3A /* ToolbarItemWrapperView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ToolbarItemWrapperView.h; sourceTree = "<group>"; };
 		31CD50E2203E2E2800360B3A /* ToolbarItemWrapperView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ToolbarItemWrapperView.m; sourceTree = "<group>"; };
+		DBC54D9A234F09BA0002D10C /* GitUp.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = GitUp.sdef; sourceTree = "<group>"; };
 		E212A6DD1B92100E00F62B18 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = usr/lib/libiconv.dylib; sourceTree = SDKROOT; };
 		E21739F51A5080DD00EC6777 /* DocumentController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DocumentController.h; sourceTree = "<group>"; };
 		E21739F61A5080DD00EC6777 /* DocumentController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DocumentController.m; sourceTree = "<group>"; };
@@ -236,6 +238,7 @@
 			children = (
 				E28A16DA1B87021600218332 /* GitUpKit.xcodeproj */,
 				E24306981B276D0B00CE8CCB /* ToolProtocol.h */,
+				DBC54D9A234F09BA0002D10C /* GitUp.sdef */,
 				E21DCAE91B253847006424E8 /* Tool */,
 				E2C338AD19F8562F00063D95 /* Application */,
 				E2E3C99D1D771E7600AA9A62 /* GARawTracker */,
@@ -412,6 +415,7 @@
 				E2A5BE701A814970008DD47F /* Localizable.strings in Resources */,
 				E2C338BA19F8562F00063D95 /* Document.xib in Resources */,
 				E2C338BF19F8562F00063D95 /* MainMenu.xib in Resources */,
+				DBC54D9D234F09BA0002D10C /* GitUp.sdef in Resources */,
 				E267E2741B84E42A00BAB377 /* Help.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
