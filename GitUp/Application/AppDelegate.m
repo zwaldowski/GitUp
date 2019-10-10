@@ -299,6 +299,20 @@
   }
 }
 
+- (void)openRepositoryWithURL:(NSURL*)url completionHandler:(void (^)(Document*))completion {
+  NSDocumentController* controller = NSDocumentController.sharedDocumentController;
+  [controller openDocumentWithContentsOfURL:url
+                                    display:YES
+                          completionHandler:^(NSDocument* document, BOOL documentWasAlreadyOpen, NSError* openError) {
+                            if (openError) {
+                              [controller presentError:openError];
+                            }
+                            if (completion) {
+                              completion(documentWasAlreadyOpen ? nil : (Document*)document);
+                            }
+                          }];
+}
+
 #pragma mark - NSApplicationDelegate
 
 - (void)applicationWillFinishLaunching:(NSNotification*)notification {

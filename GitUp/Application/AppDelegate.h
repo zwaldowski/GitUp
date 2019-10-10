@@ -15,6 +15,8 @@
 
 #import <GitUpKit/GitUpKit.h>
 
+@class Document;
+
 @interface AppDelegate : NSObject <NSApplicationDelegate, GCRepositoryDelegate>
 @property(nonatomic, strong) IBOutlet NSWindow* preferencesWindow;
 @property(nonatomic, weak) IBOutlet NSToolbar* preferencesToolbar;
@@ -49,4 +51,6 @@
 - (void)repository:(GCRepository*)repository didFinishTransferWithURL:(NSURL*)url success:(BOOL)success;
 
 - (void)handleDocumentCountChanged;
+
+- (void)openRepositoryWithURL:(NSURL*)url completionHandler:(void(^)(Document *))completion;
 @end
