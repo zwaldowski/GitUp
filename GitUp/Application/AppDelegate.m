@@ -216,16 +216,16 @@
   // Initialize custom subclass of NSDocumentController
   [DocumentController sharedDocumentController];
 
-#if !DEBUG
-  // Initialize HockeyApp
-  [[BITHockeyManager sharedHockeyManager] configureWithIdentifier:@"65233b0e034e4fcbaf6754afba3b2b23"];
-  [[BITHockeyManager sharedHockeyManager] setDisableMetricsManager:YES];
-  [[BITHockeyManager sharedHockeyManager] setDisableFeedbackManager:YES];
-  [[BITHockeyManager sharedHockeyManager] startManager];
-
-  // Initialize Google Analytics
-  [[GARawTracker sharedTracker] startWithTrackingID:@"UA-83409580-1"];
-#endif
+//#if !DEBUG
+//  // Initialize HockeyApp
+//  [[BITHockeyManager sharedHockeyManager] configureWithIdentifier:@"65233b0e034e4fcbaf6754afba3b2b23"];
+//  [[BITHockeyManager sharedHockeyManager] setDisableMetricsManager:YES];
+//  [[BITHockeyManager sharedHockeyManager] setDisableFeedbackManager:YES];
+//  [[BITHockeyManager sharedHockeyManager] startManager];
+//
+//  // Initialize Google Analytics
+//  [[GARawTracker sharedTracker] startWithTrackingID:@"UA-83409580-1"];
+//#endif
 
   [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self
                                                      andSelector:@selector(_getUrl:withReplyEvent:)
@@ -234,19 +234,19 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification*)notification {
-#if !DEBUG
-  // Initialize Sparkle and check for update immediately
-  if (![[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsKey_DisableSparkle]) {
-    _updater = [SUUpdater sharedUpdater];
-    _updater.delegate = self;
-    _updater.automaticallyChecksForUpdates = NO;
-    _updater.sendsSystemProfile = NO;
-    _updater.automaticallyDownloadsUpdates = YES;
-
-    _manualCheck = NO;
-    [_updater checkForUpdatesInBackground];
-  }
-#endif
+//#if !DEBUG
+//  // Initialize Sparkle and check for update immediately
+//  if (![[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsKey_DisableSparkle]) {
+//    _updater = [SUUpdater sharedUpdater];
+//    _updater.delegate = self;
+//    _updater.automaticallyChecksForUpdates = NO;
+//    _updater.sendsSystemProfile = NO;
+//    _updater.automaticallyDownloadsUpdates = YES;
+//
+//    _manualCheck = NO;
+//    [_updater checkForUpdatesInBackground];
+//  }
+//#endif
 
   // Initialize user notification center
   [[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate:self];
@@ -340,13 +340,13 @@
     [self.welcomeWindowController setShouldShow];
   }
   [self handleDocumentCountChanged];
-#if !DEBUG
-  [[GARawTracker sharedTracker] sendEventWithCategory:@"application"
-                                               action:@"activate"
-                                                label:nil
-                                                value:nil
-                                      completionBlock:NULL];
-#endif
+//#if !DEBUG
+//  [[GARawTracker sharedTracker] sendEventWithCategory:@"application"
+//                                               action:@"activate"
+//                                                label:nil
+//                                                value:nil
+//                                      completionBlock:NULL];
+//#endif
 }
 
 #if __ENABLE_SUDDEN_TERMINATION__
