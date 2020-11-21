@@ -73,6 +73,7 @@
   _filesViewControllerNew = [[GIDiffFilesViewController alloc] initWithRepository:self.repository];
   _filesViewControllerNew.delegate = self;
   _filesViewControllerNew.allowsMultipleSelection = YES;
+  _filesViewControllerNew.title = NSLocalizedString(@"New Commit", nil);
   _filesViewControllerNew.emptyLabel = NSLocalizedString(@"No changes in commit", nil);
   [_filesViewNew replaceWithView:_filesViewControllerNew.view];
 
@@ -81,6 +82,7 @@
   _filesViewControllerOld = [[GIDiffFilesViewController alloc] initWithRepository:self.repository];
   _filesViewControllerOld.delegate = self;
   _filesViewControllerOld.allowsMultipleSelection = YES;
+  _filesViewControllerOld.title = NSLocalizedString(@"Old Commit", nil);
   _filesViewControllerOld.emptyLabel = NSLocalizedString(@"No changes in commit", nil);
   [_filesViewOld replaceWithView:_filesViewControllerOld.view];
 

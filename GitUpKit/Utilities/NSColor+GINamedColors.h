@@ -20,6 +20,7 @@
 @property(class, strong, readonly) NSArray<NSColor*>* gitUpGraphAlternatingBranchColors;
 
 @property(class, strong, readonly) NSColor* gitUpSeparatorColor;
+@property(class, strong, readonly) NSColor* gitUpInvertedHeaderBackgroundColor;
 
 @property(class, strong, readonly) NSColor* gitUpDiffDeletedTextBackgroundColor;
 @property(class, strong, readonly) NSColor* gitUpDiffDeletedTextHighlightColor;

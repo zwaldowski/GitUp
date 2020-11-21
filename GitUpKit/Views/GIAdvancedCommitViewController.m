@@ -58,6 +58,7 @@
   _workdirFilesViewController = [[GIDiffFilesViewController alloc] initWithRepository:self.repository];
   _workdirFilesViewController.delegate = self;
   _workdirFilesViewController.allowsMultipleSelection = YES;
+  _workdirFilesViewController.title = NSLocalizedString(@"Working Directory", nil);
   _workdirFilesViewController.emptyLabel = NSLocalizedString(@"No changes in working directory", nil);
   [_workdirFilesView replaceWithView:_workdirFilesViewController.view];
 
@@ -66,6 +67,7 @@
   _indexFilesViewController = [[GIDiffFilesViewController alloc] initWithRepository:self.repository];
   _indexFilesViewController.delegate = self;
   _indexFilesViewController.allowsMultipleSelection = YES;
+  _indexFilesViewController.title = NSLocalizedString(@"Index", nil);
   _indexFilesViewController.emptyLabel = NSLocalizedString(@"No changes in index", nil);
   [_indexFilesView replaceWithView:_indexFilesViewController.view];
 

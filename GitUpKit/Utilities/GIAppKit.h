@@ -65,6 +65,9 @@ FOUNDATION_EXPORT void GIPerformOnMainRunLoop(dispatch_block_t block);
 - (void)saveTextFieldColors;
 @end
 
+@interface GIInvertedHeaderRowView : NSTableRowView
+@end
+
 @interface GITableView : NSTableView
 @end
 

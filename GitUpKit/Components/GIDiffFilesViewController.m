@@ -24,6 +24,14 @@
 
 static const NSPasteboardType GIPasteboardTypeFileRowIndex = @"co.gitup.mac.file-row-index";
 static const NSPasteboardType GIPasteboardTypeFileURL = @"public.file-url";
+static const NSUserInterfaceItemIdentifier GIDiffFilesHeaderRowIdentifier = @"headerRow";
+static const NSUserInterfaceItemIdentifier GIDiffFilesHeaderViewIdentifier = @"header";
+static const NSUserInterfaceItemIdentifier GIDiffFileViewIdentifier = @"file";
+
+
+@interface GIFilesHeaderView: NSTableCellView
+@property(nonatomic, weak) IBOutlet NSTextField* titleField;
+@end
 
 @interface GIFileCellView : GITableCellView
 @end
@@ -35,13 +43,16 @@ static const NSPasteboardType GIPasteboardTypeFileURL = @"public.file-url";
 @interface GIDiffFilesViewController () <NSFilePromiseProviderDelegate>
 @property(nonatomic, weak) IBOutlet GIFilesTableView* tableView;
 @property(nonatomic, weak) IBOutlet NSTextField* emptyTextField;
-@property(nonatomic, readonly) NSArray* items;
+@property(nonatomic, copy) NSArray* items;
 @end
 
 /// Allows augmenting a file promise with custom intra-app data.
 API_AVAILABLE(macos(10.12))
 @interface GIDiffFileProvider : NSFilePromiseProvider
 @property(strong) id<NSPasteboardWriting> overridePasteboardWriter;
+@end
+
+@implementation GIFilesHeaderView
 @end
 
 @implementation GIFileCellView
@@ -73,6 +84,8 @@ static NSImage* _modifiedImage = nil;
 static NSImage* _deletedImage = nil;
 static NSImage* _renamedImage = nil;
 static NSImage* _untrackedImage = nil;
+static CGFloat _headerRowHeight = 0;
+static CGFloat _fileRowHeight = 0;
 
 @implementation GIDiffFilesViewController
 
@@ -85,8 +98,8 @@ static NSImage* _untrackedImage = nil;
   _untrackedImage = [[NSBundle bundleForClass:[GIDiffFilesViewController class]] imageForResource:@"icon_file_u"];
 }
 
-- (void)loadView {
-  [super loadView];
+- (void)viewDidLoad {
+  [super viewDidLoad];
 
   _tableView.controller = self;
   _tableView.target = self;
@@ -95,13 +108,15 @@ static NSImage* _untrackedImage = nil;
   [_tableView setDraggingSourceOperationMask:NSDragOperationMove forLocal:YES];
   [_tableView setDraggingSourceOperationMask:NSDragOperationGeneric forLocal:NO];
 
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    _headerRowHeight = [[_tableView makeViewWithIdentifier:@"header" owner:self] frame].size.height;
+    _fileRowHeight = [[_tableView makeViewWithIdentifier:@"file" owner:self] frame].size.height;
+  });
+
   _emptyTextField.stringValue = @"";
 
   self.allowsMultipleSelection = NO;
-}
-
-- (NSArray*)items {
-  return self.deltas;
 }
 
 - (void)setDeltas:(NSArray*)deltas usingConflicts:(NSDictionary*)conflicts {
@@ -113,6 +128,11 @@ static NSImage* _untrackedImage = nil;
 }
 
 - (void)_reloadDeltas {
+  NSMutableArray *items = [NSMutableArray array];
+  if (self.title) [items addObject:NSNull.null];
+  [items addObjectsFromArray:self.deltas];
+  self.items = items;
+
   [_tableView reloadData];
 
   _emptyTextField.hidden = self.deltas.count ? YES : NO;
@@ -151,6 +171,8 @@ static NSImage* _untrackedImage = nil;
 
 - (void)setSelectedDeltas:(NSArray*)deltas {
   NSIndexSet* indexes = [self.items indexesOfObjectsPassingTest:^(GCDiffDelta* delta, NSUInteger row, BOOL* stop) {
+    if ([delta isEqual:NSNull.null]) return NO;
+
     for (GCDiffDelta* deltaToSelect in deltas) {
       if ((delta == deltaToSelect) || [delta.canonicalPath isEqualToString:deltaToSelect.canonicalPath]) {  // Don't use -isEqualToDelta:
         return YES;
@@ -188,7 +210,7 @@ static NSImage* _untrackedImage = nil;
 }
 
 - (IBAction)doubleClick:(id)sender {
-  if ([_delegate respondsToSelector:@selector(diffFilesViewController:didDoubleClickDeltas:)]) {
+  if (![self _isHeaderRow:self.tableView.clickedRow] && [_delegate respondsToSelector:@selector(diffFilesViewController:didDoubleClickDeltas:)]) {
     [_delegate diffFilesViewController:self didDoubleClickDeltas:self.selectedDeltas];
   }
 }
@@ -265,54 +287,84 @@ static NSImage* _untrackedImage = nil;
 
 #pragma mark - NSTableViewDelegate
 
+- (BOOL)_isHeaderRow:(NSInteger)row {
+  return row >= 0 ? [self.items[row] isEqual:NSNull.null] : NO;
+}
+
 - (NSView*)tableView:(NSTableView*)tableView viewForTableColumn:(NSTableColumn*)tableColumn row:(NSInteger)row {
-  GCDiffDelta* delta = self.items[row];
-  GCIndexConflict* conflict = self.conflicts[delta.canonicalPath];
-  GIFileCellView* view = [_tableView makeViewWithIdentifier:tableColumn.identifier owner:self];
-  view.textField.stringValue = delta.canonicalPath;
-  if (conflict) {
-    view.imageView.image = _conflictImage;
+  if ([self _isHeaderRow:row]) {
+    GIFilesHeaderView* view = [_tableView makeViewWithIdentifier:GIDiffFilesHeaderViewIdentifier owner:self];
+    view.titleField.stringValue = self.title;
+    return view;
   } else {
-    switch (delta.change) {
-      case kGCFileDiffChange_Added:
-        view.imageView.image = _addedImage;
-        break;
-
-      case kGCFileDiffChange_Deleted:
-        view.imageView.image = _deletedImage;
-        break;
-
-      case kGCFileDiffChange_Modified:
-        view.imageView.image = _modifiedImage;
-        break;
-
-      case kGCFileDiffChange_Renamed:
-        view.imageView.image = _renamedImage;
-        break;
-
-      case kGCFileDiffChange_Untracked:
-        if (_showsUntrackedAsAdded) {
+    GCDiffDelta* delta = self.items[row];
+    GCIndexConflict* conflict = self.conflicts[delta.canonicalPath];
+    GIFileCellView* view = [_tableView makeViewWithIdentifier:GIDiffFileViewIdentifier owner:self];
+    view.textField.stringValue = delta.canonicalPath;
+    if (conflict) {
+      view.imageView.image = _conflictImage;
+    } else {
+      switch (delta.change) {
+        case kGCFileDiffChange_Added:
           view.imageView.image = _addedImage;
-        } else {
-          view.imageView.image = _untrackedImage;
-        }
-        break;
+          break;
 
-      default:
-        view.imageView.image = nil;
-        XLOG_DEBUG_UNREACHABLE();
-        break;
+        case kGCFileDiffChange_Deleted:
+          view.imageView.image = _deletedImage;
+          break;
+
+        case kGCFileDiffChange_Modified:
+          view.imageView.image = _modifiedImage;
+          break;
+
+        case kGCFileDiffChange_Renamed:
+          view.imageView.image = _renamedImage;
+          break;
+
+        case kGCFileDiffChange_Untracked:
+          if (_showsUntrackedAsAdded) {
+            view.imageView.image = _addedImage;
+          } else {
+            view.imageView.image = _untrackedImage;
+          }
+          break;
+
+        default:
+          view.imageView.image = nil;
+          XLOG_DEBUG_UNREACHABLE();
+          break;
+      }
     }
+    return view;
   }
-  return view;
+}
+
+- (NSTableRowView *)tableView:(NSTableView *)tableView rowViewForRow:(NSInteger)row {
+  if ([self _isHeaderRow:row]) {
+    return [tableView makeViewWithIdentifier:GIDiffFilesHeaderRowIdentifier owner:self];
+  } else {
+    return nil;
+  }
 }
 
 - (BOOL)tableView:(NSTableView*)tableView shouldSelectRow:(NSInteger)row {
-  GCDiffDelta* delta = row >= 0 ? self.items[row] : nil;
-  if ([_delegate respondsToSelector:@selector(diffFilesViewController:willSelectDelta:)]) {
-    [_delegate diffFilesViewController:self willSelectDelta:delta];
+  if ([self _isHeaderRow:row]) {
+    return NO;
+  } else {
+    GCDiffDelta* delta = row >= 0 ? self.items[row] : nil;
+    if ([_delegate respondsToSelector:@selector(diffFilesViewController:willSelectDelta:)]) {
+      [_delegate diffFilesViewController:self willSelectDelta:delta];
+    }
+    return YES;
   }
-  return YES;
+}
+
+- (CGFloat)tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
+  return [self _isHeaderRow:row] ? _headerRowHeight : _fileRowHeight;
+}
+
+- (BOOL)tableView:(NSTableView *)tableView isGroupRow:(NSInteger)row {
+  return [self _isHeaderRow:row];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification*)notification {

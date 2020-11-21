@@ -102,6 +102,7 @@
   }
 
 IMPLEMENT_NAMED_COLOR(Separator, "separator", 0, 0, 0, 0.2)
+IMPLEMENT_NAMED_COLOR(InvertedHeaderBackground, "inverted_header_background", 0.5, 0.5, 0.5, 1)
 IMPLEMENT_NAMED_COLOR(DiffDeletedTextBackground, "diff/deleted_text_background", 1, 0.9, 0.9, 1)
 IMPLEMENT_NAMED_COLOR(DiffDeletedTextHighlight, "diff/deleted_text_highlight", 1, 0.7, 0.7, 1)
 IMPLEMENT_NAMED_COLOR(DiffAddedTextBackground, "diff/added_text_background", 0.85, 1, 0.85, 1)

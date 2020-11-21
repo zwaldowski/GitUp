@@ -10,10 +10,8 @@
             <connections>
                 <outlet property="continueButton" destination="kyp-MO-xu5" id="LRR-6V-vFc"/>
                 <outlet property="diffContentsView" destination="weo-in-1Ld" id="WAI-ja-NrZ"/>
-                <outlet property="filesViewNew" destination="IfV-FZ-t0W" id="s6S-bX-wFN"/>
-                <outlet property="filesViewNewHeader" destination="i0X-9n-k1u" id="QM7-Kd-cEm"/>
-                <outlet property="filesViewOld" destination="Scn-lW-rL0" id="Ixn-qz-kmQ"/>
-                <outlet property="filesViewOldHeader" destination="7j5-Pz-Pse" id="ZCb-hZ-CUN"/>
+                <outlet property="filesViewNew" destination="ots-w9-o6k" id="7hw-a5-klZ"/>
+                <outlet property="filesViewOld" destination="VtZ-UX-sFq" id="77X-Wj-lSF"/>
                 <outlet property="infoTextField" destination="J4i-ca-hW8" id="SsC-49-2T9"/>
                 <outlet property="messageTextView" destination="C9q-53-7wr" id="Yf2-ha-bpr"/>
                 <outlet property="messageView" destination="mcb-9I-AWZ" id="5WM-be-w0L"/>
@@ -73,52 +71,10 @@
                                         <customView fixedFrame="YES" id="ots-w9-o6k">
                                             <rect key="frame" x="0.0" y="0.0" width="300" height="211"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                            <subviews>
-                                                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="i0X-9n-k1u" customClass="GIColorView">
-                                                    <rect key="frame" x="0.0" y="177" width="300" height="34"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                                                    <subviews>
-                                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Zg3-mt-YHc">
-                                                            <rect key="frame" x="8" y="9" width="154" height="17"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                            <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" allowsUndo="NO" sendsActionOnEndEditing="YES" alignment="left" title="New Commit" id="C06-wj-5uc">
-                                                                <font key="font" metaFont="systemBold"/>
-                                                                <color key="textColor" name="alternateSelectedControlTextColor" catalog="System" colorSpace="catalog"/>
-                                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                            </textFieldCell>
-                                                        </textField>
-                                                    </subviews>
-                                                </customView>
-                                                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IfV-FZ-t0W">
-                                                    <rect key="frame" x="0.0" y="0.0" width="300" height="177"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                                </customView>
-                                            </subviews>
                                         </customView>
                                         <customView fixedFrame="YES" id="VtZ-UX-sFq">
                                             <rect key="frame" x="0.0" y="212" width="300" height="212"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                            <subviews>
-                                                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7j5-Pz-Pse" customClass="GIColorView">
-                                                    <rect key="frame" x="0.0" y="178" width="300" height="34"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                                                    <subviews>
-                                                        <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JBE-2n-Fmz">
-                                                            <rect key="frame" x="8" y="9" width="154" height="17"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                            <textFieldCell key="cell" controlSize="small" lineBreakMode="truncatingTail" allowsUndo="NO" sendsActionOnEndEditing="YES" alignment="left" title="Old Commit" id="CSN-Cf-azv">
-                                                                <font key="font" metaFont="systemBold"/>
-                                                                <color key="textColor" name="alternateSelectedControlTextColor" catalog="System" colorSpace="catalog"/>
-                                                                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                                            </textFieldCell>
-                                                        </textField>
-                                                    </subviews>
-                                                </customView>
-                                                <customView fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Scn-lW-rL0">
-                                                    <rect key="frame" x="0.0" y="0.0" width="300" height="178"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                                </customView>
-                                            </subviews>
                                         </customView>
                                     </subviews>
                                     <holdingPriorities>
@@ -212,7 +168,7 @@ DQ
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <clipView key="contentView" drawsBackground="NO" id="iv1-rd-iqv">
                         <rect key="frame" x="1" y="1" width="548" height="98"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textView importsGraphics="NO" richText="NO" verticallyResizable="YES" findStyle="panel" allowsUndo="YES" smartInsertDelete="YES" id="Bd9-d7-YLd" customClass="GICommitMessageView">
                                 <rect key="frame" x="0.0" y="0.0" width="548" height="98"/>
@@ -251,7 +207,7 @@ DQ
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <clipView key="contentView" drawsBackground="NO" id="sKA-Dg-4u7">
                         <rect key="frame" x="1" y="1" width="548" height="98"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textView importsGraphics="NO" richText="NO" verticallyResizable="YES" findStyle="panel" allowsUndo="YES" smartInsertDelete="YES" id="C9q-53-7wr" customClass="GICommitMessageView">
                                 <rect key="frame" x="0.0" y="0.0" width="548" height="98"/>

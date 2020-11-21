@@ -299,6 +299,40 @@ void GIPerformOnMainRunLoop(dispatch_block_t block) {
 
 @end
 
+@implementation GIInvertedHeaderRowView
+
+- (instancetype)initWithFrame:(NSRect)frameRect {
+  self = [super initWithFrame:frameRect];
+  if (!self) return nil;
+  [self _commonInit];
+  return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder*)coder {
+  self = [super initWithCoder:coder];
+  if (!self) return nil;
+  [self _commonInit];
+  return self;
+}
+
+- (void)_commonInit {
+  if (@available(macOS 10.14, *)) {
+  } else {
+    self.wantsLayer = YES;
+  }
+}
+
+- (NSBackgroundStyle)interiorBackgroundStyle {
+  return NSBackgroundStyleEmphasized;
+}
+
+- (void)drawBackgroundInRect:(NSRect)dirtyRect {
+  [NSColor.gitUpInvertedHeaderBackgroundColor setFill];
+  NSRectFill(dirtyRect);
+}
+
+@end
+
 @implementation GITableView
 
 - (void)awakeFromNib {
