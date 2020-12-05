@@ -1,4 +1,4 @@
-//  Copyright (C) 2015-2019 Pierre-Olivier Latour <info@pol-online.net>
+//  Copyright (C) 2015-2020 Pierre-Olivier Latour <info@pol-online.net>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
 
 #import <AppKit/AppKit.h>
 
-@interface GIModalView : NSView
-- (void)presentContentView:(NSView*)view withCompletionHandler:(dispatch_block_t)handler;
-- (void)dismissContentViewWithCompletionHandler:(dispatch_block_t)handler;
+@interface GIModalWindow : NSWindow
++ (NSWindow*)windowForCenteredSheetWithView:(NSView*)view;
 @end

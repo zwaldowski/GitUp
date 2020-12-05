@@ -32,7 +32,7 @@
 #import <GitUpKit/GICustomToolbarItem.h>
 #import <GitUpKit/GILaunchServicesLocator.h>
 #import <GitUpKit/GILinkButton.h>
-#import <GitUpKit/GIModalView.h>
+#import <GitUpKit/GIModalWindow.h>
 #import <GitUpKit/GIViewController.h>
 #import <GitUpKit/GIViewController+Utilities.h>
 #import <GitUpKit/GIWindowController.h>

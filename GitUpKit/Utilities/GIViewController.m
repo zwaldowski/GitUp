@@ -184,9 +184,6 @@
     [self.view.window selectPreviousKeyView:nil];
     return YES;
   }
-  if (selector == @selector(cancelOperation:)) {  // Esc
-    return [self.view.window.firstResponder.nextResponder tryToPerform:@selector(keyDown:) with:[NSApp currentEvent]];
-  }
   return NO;
 }
 
