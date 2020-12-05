@@ -25,7 +25,6 @@ typedef NS_ENUM(NSUInteger, GIOverlayStyle) {
 
 @protocol GIWindowControllerDelegate <NSObject>
 - (BOOL)windowController:(GIWindowController*)controller handleKeyDown:(NSEvent*)event;
-- (void)windowControllerDidChangeHasModalView:(GIWindowController*)controller;
 @end
 
 @interface GIWindow : NSWindow
@@ -46,7 +45,7 @@ typedef NS_ENUM(NSUInteger, GIOverlayStyle) {
 - (void)hideOverlay;
 
 @property(nonatomic, readonly) BOOL hasModalView;
-- (void)runModalView:(NSView*)view withInitialFirstResponder:(NSResponder*)responder completionHandler:(void (^)(BOOL success))handler;
+- (void)runModalView:(NSView*)view withInitialFirstResponder:(NSView*)initialFirstResponder completionHandler:(void (^)(BOOL success))handler;
 - (void)stopModalView:(BOOL)success;
 @end
 

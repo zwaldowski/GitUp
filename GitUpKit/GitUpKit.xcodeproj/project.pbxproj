@@ -26,6 +26,8 @@
 		DBBEE66A256B099300F96DAF /* libsqlite3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DBBEE637256B08D300F96DAF /* libsqlite3.xcframework */; };
 		DBBEE674256B09B500F96DAF /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = DBBEE654256B095000F96DAF /* libiconv.tbd */; };
 		DBBEE675256B09B500F96DAF /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = DBBEE64C256B094000F96DAF /* libz.tbd */; };
+		DB7C89BC2560A0D100564CAE /* GIModalWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = DB7C89BA2560A0D100564CAE /* GIModalWindow.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		DB7C89BD2560A0D100564CAE /* GIModalWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7C89BB2560A0D100564CAE /* GIModalWindow.m */; };
 		DBCF675722CAE12500969D4A /* NSColor+GINamedColors.h in Headers */ = {isa = PBXBuildFile; fileRef = DBDFBC1A22B61290003EEC6C /* NSColor+GINamedColors.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DBDFBC0C22B610F1003EEC6C /* Interface.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDFBC0B22B610F1003EEC6C /* Interface.xcassets */; };
 		DBDFBC0F22B61135003EEC6C /* NSBundle+GitUpKit.h in Headers */ = {isa = PBXBuildFile; fileRef = DBDFBC0D22B61135003EEC6C /* NSBundle+GitUpKit.h */; };
@@ -235,14 +237,12 @@
 		E267E2221B84DBE700BAB377 /* GIAppKit.h in Headers */ = {isa = PBXBuildFile; fileRef = E22941D31AC11E31000A83AF /* GIAppKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E267E2231B84DBE700BAB377 /* GIColorView.h in Headers */ = {isa = PBXBuildFile; fileRef = E22942251AC12E5C000A83AF /* GIColorView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E267E2241B84DBE700BAB377 /* GILinkButton.h in Headers */ = {isa = PBXBuildFile; fileRef = E22941E31AC11EBB000A83AF /* GILinkButton.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E267E2251B84DBE700BAB377 /* GIModalView.h in Headers */ = {isa = PBXBuildFile; fileRef = E22941D51AC11E31000A83AF /* GIModalView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E267E2261B84DBE700BAB377 /* GIViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = E22941D71AC11E31000A83AF /* GIViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E267E2271B84DBE700BAB377 /* GIViewController+Utilities.h in Headers */ = {isa = PBXBuildFile; fileRef = E2BDA06A1AD5AF2F00E69729 /* GIViewController+Utilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E267E2281B84DBE700BAB377 /* GIWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = E22941DC1AC11E4E000A83AF /* GIWindowController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E267E2291B84DBF800BAB377 /* GIAppKit.m in Sources */ = {isa = PBXBuildFile; fileRef = E22941D41AC11E31000A83AF /* GIAppKit.m */; };
 		E267E22A1B84DBF800BAB377 /* GIColorView.m in Sources */ = {isa = PBXBuildFile; fileRef = E22942261AC12E5C000A83AF /* GIColorView.m */; };
 		E267E22B1B84DBF800BAB377 /* GILinkButton.m in Sources */ = {isa = PBXBuildFile; fileRef = E22941E41AC11EBB000A83AF /* GILinkButton.m */; };
-		E267E22C1B84DBF800BAB377 /* GIModalView.m in Sources */ = {isa = PBXBuildFile; fileRef = E22941D61AC11E31000A83AF /* GIModalView.m */; };
 		E267E22D1B84DBF800BAB377 /* GIViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E22941D81AC11E31000A83AF /* GIViewController.m */; };
 		E267E22E1B84DBF800BAB377 /* GIViewController+Utilities.m in Sources */ = {isa = PBXBuildFile; fileRef = E2BDA06B1AD5AF2F00E69729 /* GIViewController+Utilities.m */; };
 		E267E22F1B84DBF800BAB377 /* GIWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = E22941DD1AC11E4E000A83AF /* GIWindowController.m */; };
@@ -423,6 +423,8 @@
 		DBBEE637256B08D300F96DAF /* libsqlite3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libsqlite3.xcframework; path = "Third-Party/libsqlite3.xcframework"; sourceTree = "<group>"; };
 		DBBEE64C256B094000F96DAF /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		DBBEE654256B095000F96DAF /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
+		DB7C89BA2560A0D100564CAE /* GIModalWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GIModalWindow.h; sourceTree = "<group>"; };
+		DB7C89BB2560A0D100564CAE /* GIModalWindow.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GIModalWindow.m; sourceTree = "<group>"; };
 		DBDFBC0B22B610F1003EEC6C /* Interface.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Interface.xcassets; sourceTree = "<group>"; };
 		DBDFBC0D22B61135003EEC6C /* NSBundle+GitUpKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSBundle+GitUpKit.h"; sourceTree = "<group>"; };
 		DBDFBC0E22B61135003EEC6C /* NSBundle+GitUpKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSBundle+GitUpKit.m"; sourceTree = "<group>"; };
@@ -459,8 +461,6 @@
 		E21A88FF1A97A67E00255AC3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/GISnapshotListViewController.xib; sourceTree = "<group>"; };
 		E22941D31AC11E31000A83AF /* GIAppKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GIAppKit.h; sourceTree = "<group>"; };
 		E22941D41AC11E31000A83AF /* GIAppKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GIAppKit.m; sourceTree = "<group>"; };
-		E22941D51AC11E31000A83AF /* GIModalView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GIModalView.h; sourceTree = "<group>"; };
-		E22941D61AC11E31000A83AF /* GIModalView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GIModalView.m; sourceTree = "<group>"; };
 		E22941D71AC11E31000A83AF /* GIViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GIViewController.h; sourceTree = "<group>"; };
 		E22941D81AC11E31000A83AF /* GIViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GIViewController.m; sourceTree = "<group>"; };
 		E22941DC1AC11E4E000A83AF /* GIWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GIWindowController.h; sourceTree = "<group>"; };
@@ -734,8 +734,6 @@
 				0AC8525823A122C400479160 /* GILaunchServicesLocator.m */,
 				E22941E31AC11EBB000A83AF /* GILinkButton.h */,
 				E22941E41AC11EBB000A83AF /* GILinkButton.m */,
-				E22941D51AC11E31000A83AF /* GIModalView.h */,
-				E22941D61AC11E31000A83AF /* GIModalView.m */,
 				E22941D71AC11E31000A83AF /* GIViewController.h */,
 				E22941D81AC11E31000A83AF /* GIViewController.m */,
 				E2BDA06A1AD5AF2F00E69729 /* GIViewController+Utilities.h */,
@@ -747,6 +745,8 @@
 				DBDFBC0E22B61135003EEC6C /* NSBundle+GitUpKit.m */,
 				DBDFBC1A22B61290003EEC6C /* NSColor+GINamedColors.h */,
 				DBDFBC1B22B61290003EEC6C /* NSColor+GINamedColors.m */,
+				DB7C89BA2560A0D100564CAE /* GIModalWindow.h */,
+				DB7C89BB2560A0D100564CAE /* GIModalWindow.m */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -1143,7 +1143,6 @@
 				E267E2231B84DBE700BAB377 /* GIColorView.h in Headers */,
 				0AC8525923A122C400479160 /* GILaunchServicesLocator.h in Headers */,
 				E267E2241B84DBE700BAB377 /* GILinkButton.h in Headers */,
-				E267E2251B84DBE700BAB377 /* GIModalView.h in Headers */,
 				E267E2261B84DBE700BAB377 /* GIViewController.h in Headers */,
 				E267E2271B84DBE700BAB377 /* GIViewController+Utilities.h in Headers */,
 				E267E2281B84DBE700BAB377 /* GIWindowController.h in Headers */,
@@ -1168,6 +1167,7 @@
 				E267E2581B84DC7D00BAB377 /* GIStashListViewController.h in Headers */,
 				E267E2CB1B84F29F00BAB377 /* XLASLLogger.h in Headers */,
 				E267E2CC1B84F29F00BAB377 /* XLCallbackLogger.h in Headers */,
+				DB7C89BC2560A0D100564CAE /* GIModalWindow.h in Headers */,
 				E267E2CD1B84F29F00BAB377 /* XLFacility.h in Headers */,
 				E267E2CE1B84F29F00BAB377 /* XLFacilityCMacros.h in Headers */,
 				E267E2CF1B84F29F00BAB377 /* XLFacilityMacros.h in Headers */,
@@ -1461,6 +1461,7 @@
 				E267E2181B84DB6E00BAB377 /* GIGraph.m in Sources */,
 				E267E2191B84DB6E00BAB377 /* GIGraphView.m in Sources */,
 				E267E21A1B84DB6E00BAB377 /* GILayer.m in Sources */,
+				DB7C89BD2560A0D100564CAE /* GIModalWindow.m in Sources */,
 				E267E21B1B84DB6E00BAB377 /* GILine.m in Sources */,
 				E267E21C1B84DB6E00BAB377 /* GINode.m in Sources */,
 				E267E21D1B84DB6E00BAB377 /* GIPrivate.m in Sources */,
@@ -1470,7 +1471,6 @@
 				E267E22A1B84DBF800BAB377 /* GIColorView.m in Sources */,
 				E267E22B1B84DBF800BAB377 /* GILinkButton.m in Sources */,
 				DBDFBC1122B61135003EEC6C /* NSBundle+GitUpKit.m in Sources */,
-				E267E22C1B84DBF800BAB377 /* GIModalView.m in Sources */,
 				E267E22D1B84DBF800BAB377 /* GIViewController.m in Sources */,
 				E267E22E1B84DBF800BAB377 /* GIViewController+Utilities.m in Sources */,
 				E267E22F1B84DBF800BAB377 /* GIWindowController.m in Sources */,

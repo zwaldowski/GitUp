@@ -856,10 +856,6 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
 }
 
 - (BOOL)shouldCloseDocument {
-  if (_windowController.hasModalView) {
-    NSBeep();
-    return NO;
-  }
   if ([_windowMode isEqualToString:kWindowModeString_Map_Rewrite] || [_windowMode isEqualToString:kWindowModeString_Map_Split] || [_windowMode isEqualToString:kWindowModeString_Map_Resolve]) {
     [_windowController showOverlayWithStyle:kGIOverlayStyle_Warning message:NSLocalizedString(@"You must finish or cancel before closing the repository", nil)];
     return NO;
@@ -1361,10 +1357,6 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
   return handled;
 }
 
-- (void)windowControllerDidChangeHasModalView:(GIWindowController*)controller {
-  [self _updateToolBar];
-}
-
 #pragma mark - GIMapViewControllerDelegate
 
 - (void)mapViewControllerDidReloadGraph:(GIMapViewController*)controller {
@@ -1581,10 +1573,6 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
     return YES;
   }
 
-  if (_windowController.hasModalView) {
-    return NO;
-  }
-
   if ((item.action == @selector(focusSearch:)) || (item.action == @selector(performSearch:))) {
     return [_windowMode isEqualToString:kWindowModeString_Map] && !_tagsView.superview && !_snapshotsView.superview && !_reflogView.superview && !_ancestorsView.superview && _searchReady;
   }
@@ -1623,7 +1611,7 @@ static NSString* _StringFromRepositoryState(GCRepositoryState state) {
     [modeControl selectSegmentWithTag:windowModeID];
     menuItem.state = menuItem.tag == windowModeID ? NSOnState : NSOffState;
 
-    return !_windowController.hasModalView;
+    return YES;
   }
 
   if (item.action == @selector(navigate:)) {

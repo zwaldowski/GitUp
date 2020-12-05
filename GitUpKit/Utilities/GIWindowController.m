@@ -20,9 +20,9 @@
 #import <QuartzCore/QuartzCore.h>
 
 #import "GIWindowController.h"
-#import "GIModalView.h"
 #import "GIColorView.h"
 #import "GIConstants.h"
+#import "GIModalWindow.h"
 
 #import "XLFacilityMacros.h"
 #import "GIGraphView.h"
@@ -34,7 +34,6 @@
 @property(nonatomic, strong) IBOutlet GIColorView* overlayView;
 @property(nonatomic, weak) IBOutlet NSTextField* overlayTextField;
 @property(nonatomic, weak) IBOutlet NSButton* overlayCloseButton;
-- (GIModalView*)modalViewIfVisible;
 @end
 
 @interface GIFieldEditor : NSTextView
@@ -94,14 +93,9 @@ static void _WalkViewTree(NSView* view, NSMutableArray* array) {
 
 - (void)_selectKeyView:(NSInteger)delta {
   NSMutableArray* array = [[NSMutableArray alloc] init];
-  GIModalView* modalView = [self.windowController modalViewIfVisible];
-  if (modalView) {
-    _WalkViewTree(modalView, array);
-  } else {
-    _WalkViewTree(self.contentView, array);
-    for (NSToolbarItem* item in self.toolbar.items) {
-      _WalkViewTree(item.view, array);
-    }
+  _WalkViewTree(self.contentView, array);
+  for (NSToolbarItem* item in self.toolbar.items) {
+    _WalkViewTree(item.view, array);
   }
   if (array.count) {
     NSUInteger index = [array indexOfObjectIdenticalTo:self.firstResponder];
@@ -130,16 +124,9 @@ static void _WalkViewTree(NSView* view, NSMutableArray* array) {
   }
 }
 
-- (BOOL)performKeyEquivalent:(NSEvent*)event {
-  GIModalView* modalView = [self.windowController modalViewIfVisible];
-  return modalView ? [modalView performKeyEquivalent:event] : [super performKeyEquivalent:event];
-}
-
 - (void)sendEvent:(NSEvent*)event {
   BOOL escapeKeyDown = (event.type == NSKeyDown) && (event.keyCode == kGIKeyCode_Esc);
-  if (escapeKeyDown && self.windowController.hasModalView) {
-    [self.windowController stopModalView:NO];
-  } else if (escapeKeyDown && self.windowController.overlayVisible) {
+  if (escapeKeyDown && self.windowController.overlayVisible) {
     [self.windowController hideOverlay];
   } else {
     [super sendEvent:event];
@@ -153,9 +140,6 @@ static NSColor* _informationalColor = nil;
 static NSColor* _warningColor = nil;
 
 @implementation GIWindowController {
-  GIModalView* _modalView;
-  void (^_handler)(BOOL);
-  NSResponder* _previousResponder;
   NSTrackingArea* _area;
   CFRunLoopTimerRef _overlayTimer;  // Can't use a NSTimer because of retain-cycle
   CFTimeInterval _overlayDelay;
@@ -189,9 +173,6 @@ static void _TimerCallBack(CFRunLoopTimerRef timer, void* info) {
 
     _area = [[NSTrackingArea alloc] initWithRect:NSZeroRect options:(NSTrackingInVisibleRect | NSTrackingActiveAlways | NSTrackingMouseEnteredAndExited) owner:self userInfo:nil];
     [_overlayView addTrackingArea:_area];
-
-    _modalView = [[GIModalView alloc] initWithFrame:NSZeroRect];
-    _modalView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
 
     CFRunLoopTimerContext context = {0, (__bridge void*)self, NULL, NULL, NULL};
     _overlayTimer = CFRunLoopTimerCreate(kCFAllocatorDefault, HUGE_VALF, HUGE_VALF, 0, 0, _TimerCallBack, &context);
@@ -309,67 +290,26 @@ static void _TimerCallBack(CFRunLoopTimerRef timer, void* info) {
   }
 }
 
-- (GIModalView*)modalViewIfVisible {
-  return _modalView.superview ? _modalView : nil;
-}
-
-- (BOOL)hasModalView {
-  return (_modalView.superview != nil);
-}
-
-- (void)runModalView:(NSView*)view withInitialFirstResponder:(NSResponder*)responder completionHandler:(void (^)(BOOL success))handler {
-  XLOG_DEBUG_CHECK(_modalView);
-  XLOG_DEBUG_CHECK(!_handler);
-
-  _previousResponder = self.window.firstResponder;
-  [self.window makeFirstResponder:nil];  // Must happen before to abort any text field editing
-
-  [[NSProcessInfo processInfo] disableSuddenTermination];
-
-  XLOG_DEBUG_CHECK(self.window.areCursorRectsEnabled);
-  [self.window disableCursorRects];  // TODO: Looks like cursor rects are automatically re-enabled when resizing the window?!
-  [[NSCursor arrowCursor] set];
-
-  _modalView.frame = [self.window.contentView bounds];
-  if (_overlayView.superview) {  // Must be above everything else except overlay view
-    [self.window.contentView addSubview:_modalView positioned:NSWindowBelow relativeTo:_overlayView];
-  } else {
-    [self.window.contentView addSubview:_modalView];
-  }
-  [_delegate windowControllerDidChangeHasModalView:self];
-
-  [_modalView presentContentView:view withCompletionHandler:NULL];
-
-  [self.window makeFirstResponder:responder];
-
-  _handler = handler;
+- (void)runModalView:(NSView*)view withInitialFirstResponder:(NSView*)initialFirstResponder completionHandler:(void (^)(BOOL success))handler {
+  XLOG_DEBUG_CHECK(handler);
+  NSWindow* window = [GIModalWindow windowForCenteredSheetWithView:view];
+  window.initialFirstResponder = initialFirstResponder;
+  GIPerformOnMainRunLoop(^{
+    [self.window beginSheet:window
+          completionHandler:^(NSModalResponse returnCode) {
+            // Defer the callback a bit to ensure animations run in parallel to callback execution
+            //
+            // Performed on the main run loop instead of the main queue to ensure that the
+            // main queue is serviced during a modal session
+            GIPerformOnMainRunLoop(^{
+              handler(returnCode == NSModalResponseOK);
+            });
+          }];
+  });
 }
 
 - (void)stopModalView:(BOOL)success {
-  XLOG_DEBUG_CHECK(_handler);
-
-  [self.window makeFirstResponder:_previousResponder];
-  _previousResponder = nil;
-
-  [_modalView dismissContentViewWithCompletionHandler:^{
-    [_modalView removeFromSuperview];
-    [_delegate windowControllerDidChangeHasModalView:self];
-
-    [self.window enableCursorRects];  // TODO: This hides the cursor until it moves again?!
-
-    [[NSProcessInfo processInfo] enableSuddenTermination];
-  }];
-
-  if (_handler) {
-    // Defer the callback a bit to ensure animations run in parallel to callback execution
-    //
-    // Performed on the main run loop instead of the main queue to ensure that the
-    // main queue is serviced during a modal session
-    GIPerformOnMainRunLoop(^{
-      _handler(success);
-      _handler = NULL;
-    });
-  }
+  [self.window endSheet:self.window.attachedSheet returnCode:(success ? NSModalResponseOK : NSModalResponseCancel)];
 }
 
 @end
